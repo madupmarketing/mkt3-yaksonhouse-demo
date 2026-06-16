@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>약손명가헬스케어 · 부정 리뷰 관리</title>
+<link rel="stylesheet" href="../_assets/dashboard.css">
+<style>
+/* ===== Severity badge ===== */
+.sev-badge {
+  display: inline-block; font-size: 10px; font-weight: 800;
+  padding: 3px 9px; border-radius: 6px; letter-spacing: 0.3px;
+}
+.sev-critical { background: #FEE2E2; color: #DC2626; }
+.sev-warning  { background: #FEF3C7; color: #92400E; }
+.sev-improved { background: #DCFCE7; color: #15803D; }
+
+/* ===== Change cell ===== */
+.chg-up   { color: #DC2626; font-weight: 800; }
+.chg-down { color: #15803D; font-weight: 800; }
+.chg-mid  { color: #92400E; font-weight: 800; }
+
+/* ===== Diverging bar (변화 컬럼) ===== */
+.div-bar-wrap {
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.div-bar-track {
+  position: relative; width: 90px; height: 10px; background: #F0F0F0;
+  border-radius: 3px; overflow: visible; flex-shrink: 0;
+}
+/* 0% 기준선 (중앙) */
+.div-bar-track::after {
+  content: ''; position: absolute; left: 50%; top: -2px;
+  width: 1.5px; height: 14px; background: #BDBDBD; z-index: 2;
+}
+/* ±15% 마커 */
+.div-marker-15-neg, .div-marker-15-pos,
+.div-marker-30-neg, .div-marker-30-pos {
+  position: absolute; top: -2px; width: 1px; height: 14px;
+  background: #E0E0E0; z-index: 1;
+}
+/* ±15% = center ± 22.5px (25% of 90px) */
+.div-marker-15-neg { left: calc(50% - 22.5px); }
+.div-marker-15-pos { left: calc(50% + 22.5px); }
+/* ±30% = center ± 45px (50% of 90px) */
+.div-marker-30-neg { left: calc(50% - 45px); }
+.div-marker-30-pos { left: calc(50% + 45px); }
+.div-bar-fill {
+  position: absolute; top: 0; height: 10px; border-radius: 2px;
+}
+.div-bar-fill.pos { background: #DC2626; left: 50%; }
+.div-bar-fill.neg { background: #10b981; right: 50%; }
+.div-bar-fill.imp { background: #10b981; left: 50%; }
+
+/* ===== KPI summary donut (상단) ===== */
+.alert-summary-wrap {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 28px;
+  background: #FFFFFF; border: 1px solid #EAEAEA; border-radius: 12px;
+  padding: 16px 22px;
+}
+.alert-seg-bar {
+  flex: 1; height: 12px; border-radius: 6px; overflow: hidden;
+  display: flex; min-width: 0;
+}
+.alert-seg-bar span { display: block; height: 100%; transition: width .3s; }
+.alert-seg-legend {
+  display: flex; gap: 12px; flex-shrink: 0; font-size: 11.5px; font-weight: 700;
+}
+.alert-seg-legend .dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  margin-right: 4px; vertical-align: middle;
+}
+
+/* ===== Action advisory pill ===== */
+.action-pill {
+  font-size: 10.5px; font-weight: 600; color: #4A4A4A;
+  background: #F5F5F5; border-radius: 6px;
+  padding: 3px 9px; display: inline-block;
+}
+
+/* ===== Review list ===== */
+.review-list { display: flex; flex-direction: column; gap: 14px; }
+.review-item {
+  padding: 14px 16px; border: 1px solid #EAEAEA; border-radius: 12px;
+  background: #FFFFFF;
+}
+.review-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.review-stars { color: #F5B301; font-size: 13px; letter-spacing: 1px; }
+.review-stars .empty { color: #E0E0E0; }
+.review-product { font-size: 11px; font-weight: 700; color: #D8404D; }
+.review-text { font-size: 12.5px; color: #333; line-height: 1.55; margin-bottom: 7px; }
+.review-meta { display: flex; gap: 12px; font-size: 10px; color: #999; font-weight: 600; }
+.review-channel { background: #F0F0F0; padding: 2px 8px; border-radius: 10px; }
+.review-severity-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  display: inline-block; margin-right: 4px;
+}
+
+/* ===== MILOT status list ===== */
+.milot-list { display: flex; flex-direction: column; gap: 10px; }
+.milot-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-radius: 10px; border: 1px solid #EAEAEA;
+  background: #FFFFFF;
+}
+.milot-label { font-size: 12.5px; font-weight: 700; color: #1A1A1A; }
+.milot-sub { font-size: 10.5px; color: #999; margin-top: 2px; }
+.milot-count { font-size: 18px; font-weight: 800; }
+.milot-item.issue-critical { border-left: 3px solid #DC2626; }
+.milot-item.issue-warning  { border-left: 3px solid #F59E0B; }
+.milot-item.issue-ok       { border-left: 3px solid #10b981; }
+.milot-bar-wrap { height: 6px; background: #F0F0F0; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.milot-bar-fill { height: 100%; border-radius: 3px; }
+
+/* ===== Rules table ===== */
+.rules-status {
+  display: inline-block; font-size: 10px; font-weight: 800;
+  padding: 3px 9px; border-radius: 6px;
+}
+.rules-active   { background: #DCFCE7; color: #15803D; }
+.rules-planned  { background: #EFF6FF; color: #1D4ED8; }
+.rules-paused   { background: #F3F4F6; color: #6B7280; }
+
+/* ===== Playbook note ===== */
+.playbook-note {
+  background: #FFF8E6; border: 1px solid #F5E0A8; border-radius: 10px;
+  padding: 11px 16px; font-size: 11.5px; color: #92400E; font-weight: 600;
+  margin-top: 18px; line-height: 1.6;
+}
+.playbook-note b { color: #1A1A1A; }
+
+/* ===== 라이브 광고 댓글 부정 코멘트 ===== */
+.adcmt-list { display:flex; flex-direction:column; gap:12px; }
+.adcmt-item { border:1px solid #F3C6CB; border-left:4px solid #DC2626; border-radius:12px;
+  padding:14px 16px; background:linear-gradient(90deg,#FFF5F6 0%,#FFF 60%); }
+.adcmt-top { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.adcmt-plat { font-size:10px; font-weight:800; padding:2px 9px; border-radius:6px; color:#fff; }
+.adcmt-ad { font-size:11.5px; font-weight:700; color:#1A1A1A; }
+.adcmt-tag { font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:10px; background:#FEE2E2; color:#DC2626; }
+.adcmt-text { font-size:12.5px; color:#333; line-height:1.5; margin-bottom:9px; }
+.adcmt-foot { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.adcmt-meta { font-size:10px; color:#999; font-weight:600; display:flex; gap:10px; flex-wrap:wrap; }
+.adcmt-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.adcmt-alert { font-size:11.5px; font-weight:800; color:#DC2626; white-space:nowrap; }
+.adcmt-action { font-size:10.5px; font-weight:600; color:#4A4A4A; background:#F5F5F5; border-radius:6px; padding:3px 9px; }
+
+/* ===== 부정 코멘트 유형별 분포 ===== */
+.cmtcat-wrap { background:#FAFAFA; border:1px solid #EEEEEE; border-radius:12px; padding:14px 16px; margin-bottom:16px; }
+.cmtcat-title { font-size:12px; font-weight:800; color:#1A1A1A; margin-bottom:10px; }
+.cmtcat-row { display:flex; align-items:center; gap:10px; padding:5px 0; }
+.cmtcat-name { font-size:11.5px; font-weight:700; color:#1A1A1A; width:84px; flex:none; }
+.cmtcat-track { flex:1; height:11px; background:#EFEFEF; border-radius:6px; overflow:hidden; }
+.cmtcat-fill { height:100%; border-radius:6px; }
+.cmtcat-val { font-size:11px; font-weight:800; color:#1A1A1A; width:78px; text-align:right; flex:none; }
+.cmtcat-val span { color:#999; font-weight:600; font-size:10px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">부정 리뷰 관리</div>
+        <div class="page-sub">성과 이상 감지 · 부정 리뷰 · 라이브 광고 댓글 숨김 · 소재 검수 알림</div>
+      </div>
+      <div class="page-meta">
+        <span class="goal">🚨 실시간 모니터링</span>
+        <span class="live">⦿ LIVE</span>
+      </div>
+    </div>
+
+    <!-- KPI Grid -->
+    <div class="kpi-grid cols-4">
+      <div class="kpi-card featured">
+        <div class="kpi-label">부정 코멘트</div>
+        <div class="kpi-value" style="color:#DC2626;">98<span class="kpi-unit">건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">숨김 처리 후보</div>
+        <div class="kpi-value" style="color:#F59E0B;">5<span class="kpi-unit">건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">부정 리뷰</div>
+        <div class="kpi-value">5<span class="kpi-unit">건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">최다 불만 유형</div>
+        <div class="kpi-value" style="font-size:22px;">효과 불만</div>
+      </div>
+    </div>
+
+    <!-- 알림 현황 세그먼트 바 요약 -->
+    <div class="alert-summary-wrap">
+      <span style="font-size:11.5px;font-weight:700;color:#999;white-space:nowrap;">알림 현황</span>
+      <div class="alert-seg-bar" id="alert-seg-bar"></div>
+      <div class="alert-seg-legend" id="alert-seg-legend"></div>
+    </div>
+
+    <!-- 매체별 부정 코멘트 관리 -->
+    <div class="table-card">
+      <div class="section-title">
+        🚨 매체별 부정 코멘트 관리
+        <span class="section-title-sub">집행 중 광고 댓글 실시간 감지 · 유형별 분류 · 숨김 처리 후보</span>
+      </div>
+      <div class="cmtcat-wrap">
+        <div class="cmtcat-title">유형별 분포 <span style="color:#999;font-weight:600;">· 총 98건</span></div>
+        <div id="cmtcat-bars"></div>
+      </div>
+      <div class="adcmt-list" id="adcmt-list"></div>
+      <div class="playbook-note">
+        🙈 <b>댓글 숨김 처리는 제안까지만 제공합니다.</b> 욕설·허위·비방 코멘트의 숨김(블라인드)은 <b>담당자 승인 후 각 매체 광고 관리자에서 적용</b>합니다. 정상적 불만·피드백은 숨기지 않고 CS로 대응합니다.
+      </div>
+    </div>
+
+    <!-- 부정 리뷰 알림 -->
+    <div class="chart-card">
+      <div class="section-title">
+        부정 리뷰 알림
+        <span class="section-title-sub">★1~2 신규 리뷰 실시간 감지</span>
+      </div>
+      <div class="review-list" id="review-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../_assets/sidebar.js"></script>
+<script>
+// ===== 라이브 광고 댓글 — 부정 코멘트 (숨김 처리 후보) =====
+const ADCMT = [
+  { plat:'Meta',      platColor:'#1877F2', ad:'META 협력광고 · 올리리라밴드',  text:'광고에서 본 만큼 효과를 느끼긴 어려웠어요. 조금 아쉽네요.', author:'jih****',  time:'2026-06-14 09:12', likes:8,  tag:'효과 불만',   sev:'mid'  },
+  { plat:'Instagram', platColor:'#E1306C', ad:'인스타 릴스 · 리프팅밴드',  text:'오히려 효과가 반대라는 후기를 봤는데 사실인지 궁금해요.',   author:'sk_****',  time:'2026-06-14 08:40', likes:14, tag:'허위성 주장', sev:'high' },
+  { plat:'네이버 GFA', platColor:'#03C75A', ad:'GFA · 올리리라밴드',           text:'배송이 예상보다 많이 늦어서 조금 아쉬웠어요.',           author:'rkd****',  time:'2026-06-13 18:22', likes:5,  tag:'배송 지연',   sev:'mid'  },
+  { plat:'YouTube',   platColor:'#FF0000', ad:'유튜브 범퍼 · 골기 페이스 스톤',   text:'가격대가 다소 부담스럽게 느껴져요.',                     author:'구독****', time:'2026-06-13 21:05', likes:3,  tag:'가격 부담',   sev:'mid'  },
+  { plat:'Meta',      platColor:'#1877F2', ad:'META 리타겟팅 · 재구매',    text:'환불 안내가 명확하지 않아 진행이 조금 헷갈렸어요.',       author:'min****',  time:'2026-06-13 15:10', likes:11, tag:'CS 안내',     sev:'mid'  },
+];
+document.getElementById('adcmt-list').innerHTML = ADCMT.map(c => {
+  const alertTxt = c.sev === 'high' ? '🙈 숨기기 처리 필요' : '⚠ 숨김 검토';
+  return `<div class="adcmt-item">
+    <div class="adcmt-top">
+      <span class="adcmt-plat" style="background:${c.platColor};">${c.plat}</span>
+      <span class="adcmt-ad">${c.ad}</span>
+      <span class="adcmt-tag">${c.tag}</span>
+    </div>
+    <div class="adcmt-text">"${c.text}"</div>
+    <div class="adcmt-foot">
+      <span class="adcmt-meta"><span>${c.author}</span><span>· ${c.time}</span><span>· ♥ ${c.likes}</span></span>
+      <span class="adcmt-right">
+        <span class="adcmt-alert">${alertTxt}</span>
+        <span class="adcmt-action">숨김 처리 제안 — 담당자 승인 후 적용</span>
+      </span>
+    </div>
+  </div>`;
+}).join('');
+
+// ===== 부정 리뷰 데이터 =====
+const REVIEWS = [
+  {
+    stars: 2,
+    product: '올리리라밴드',
+    text: '착용 시 약간 당기는 느낌이 있었고, 기대한 리프팅 효과는 잘 모르겠어요. 재질이 조금 단단한 편입니다.',
+    date: '2026-06-13',
+    channel: '네이버 스마트스토어'
+  },
+  {
+    stars: 2,
+    product: '석고 마스크팩 5종 세트',
+    text: '향이 조금 강한 편이라 사용이 망설여졌어요. 진정 효과는 있었지만 기대보다는 아쉬웠습니다.',
+    date: '2026-06-12',
+    channel: '쿠팡'
+  },
+  {
+    stars: 2,
+    product: '골기 비더스톤',
+    text: '사용 후 피부가 살짝 예민해진 느낌이었어요. 환불 문의 응대가 조금 늦어 아쉬웠습니다.',
+    date: '2026-06-11',
+    channel: '네이버 쇼핑'
+  },
+  {
+    stars: 2,
+    product: '가뿐밴드',
+    text: '배송이 예상보다 늦고 포장이 살짝 아쉬웠어요. 제품 자체는 무난합니다.',
+    date: '2026-06-10',
+    channel: '자사몰'
+  },
+];
+
+function renderStars(n) {
+  let s = '';
+  for (let i = 1; i <= 5; i++) {
+    s += i <= n
+      ? '<span style="color:#F5B301;">★</span>'
+      : '<span style="color:#E0E0E0;">★</span>';
+  }
+  return s;
+}
+
+const sevDotColor = (stars) => stars === 1 ? '#DC2626' : '#F59E0B';
+
+document.getElementById('review-list').innerHTML = REVIEWS.map(r => `
+  <div class="review-item">
+    <div class="review-header">
+      <div>
+        <span class="review-stars">${renderStars(r.stars)}</span>
+        <span style="font-size:11px;font-weight:700;color:#6B6B6B;margin-left:6px;">${r.stars}.0</span>
+      </div>
+      <span class="review-product">${r.product}</span>
+    </div>
+    <div class="review-text">"${r.text}"</div>
+    <div class="review-meta">
+      <span>${r.date}</span>
+      <span class="review-channel">${r.channel}</span>
+      <span>
+        <span class="review-severity-dot" style="background:${sevDotColor(r.stars)};"></span>
+        ${r.stars === 1 ? '<span style="color:#DC2626;font-weight:700;">즉시 대응 필요</span>' : '<span style="color:#92400E;font-weight:700;">모니터링</span>'}
+      </span>
+    </div>
+  </div>
+`).join('');
+
+// ===== 상단 알림 현황 세그먼트 바 =====
+(function() {
+  const hide = 5, comment = 93, review = 5;
+  const total = hide + comment + review;
+  const segs = [
+    { label: '숨김 후보 5건', count: hide, color: '#DC2626' },
+    { label: '부정 코멘트 93건', count: comment, color: '#F59E0B' },
+    { label: '부정 리뷰 5건', count: review, color: '#6B7280' },
+  ];
+  const bar = document.getElementById('alert-seg-bar');
+  const leg = document.getElementById('alert-seg-legend');
+  bar.innerHTML = segs.map(s =>
+    `<span style="width:${(s.count/total*100).toFixed(1)}%;background:${s.color};"></span>`
+  ).join('');
+  leg.innerHTML = segs.map(s =>
+    `<span><span class="dot" style="background:${s.color};"></span>${s.label}</span>`
+  ).join('');
+})();
+
+// ===== 매체별 부정 코멘트 — 유형별 분포 =====
+const CMT_CAT = [
+  { cat: '효과 불만',  n: 34, color: '#DC2626' },
+  { cat: '허위·과장',  n: 21, color: '#F59E0B' },
+  { cat: 'CS·배송',   n: 18, color: '#1D4ED8' },
+  { cat: '가격',      n: 12, color: '#7C3AED' },
+  { cat: '부적절 표현', n: 9,  color: '#6B7280' },
+  { cat: '디자인',    n: 4,  color: '#9CA3AF' },
+];
+const cmtTotal = CMT_CAT.reduce((a, c) => a + c.n, 0);
+const cmtMax = Math.max.apply(null, CMT_CAT.map(c => c.n));
+document.getElementById('cmtcat-bars').innerHTML = CMT_CAT.map(c => `
+  <div class="cmtcat-row">
+    <span class="cmtcat-name">${c.cat}</span>
+    <div class="cmtcat-track"><div class="cmtcat-fill" style="width:${Math.round(c.n / cmtMax * 100)}%;background:${c.color};"></div></div>
+    <span class="cmtcat-val">${c.n}건 <span>${Math.round(c.n / cmtTotal * 100)}%</span></span>
+  </div>`).join('');
+</script>
+
+</body>
+</html>

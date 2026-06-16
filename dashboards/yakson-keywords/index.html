@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>약손명가헬스케어 · 경쟁사 광고 모니터링</title>
+<link rel="stylesheet" href="../_assets/dashboard.css">
+<style>
+  /* ===== 지면 토글 ===== */
+  .plane-bar { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+  .plane-label { font-size:11px; color:#999; font-weight:700; margin-right:3px; }
+
+  /* ===== 캡처 갤러리 ===== */
+  .cap-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:32px; }
+  .cap-card { border:1px solid #E6E6E6; border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 2px 10px rgba(0,0,0,.04); }
+  .cap-head { background:#F6F7F9; padding:11px 14px; border-bottom:1px solid #ECECEC; }
+  .cap-search { display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #03C75A; border-radius:20px; padding:7px 14px; }
+  .cap-n { width:18px; height:18px; border-radius:4px; background:#03C75A; color:#fff; font-weight:900; font-size:11px; display:flex; align-items:center; justify-content:center; flex:none; }
+  .cap-kw { font-size:13px; font-weight:700; color:#1A1A1A; flex:1; }
+  .cap-glass { color:#03C75A; font-size:14px; }
+  .cap-meta { font-size:10px; color:#999; margin-top:7px; font-weight:600; display:flex; gap:8px; align-items:center; }
+  .cap-plane-tag { font-size:9px; font-weight:800; padding:1px 7px; border-radius:5px; background:#E8F5EC; color:#1EA362; }
+  .cap-body { padding:6px 14px 12px; }
+
+  /* ===== 파워링크 텍스트 광고 ===== */
+  .pl-ad { padding:11px 2px; border-bottom:1px solid #F2F2F2; }
+  .pl-ad:last-child { border-bottom:none; }
+  .pl-ad.flag { background:#FFF5F6; border:1px solid #F3C6CB; border-radius:9px; padding:11px 12px; margin:6px 0; }
+  .pl-row1 { display:flex; align-items:center; gap:6px; margin-bottom:3px; flex-wrap:wrap; }
+  .pl-tag { font-size:9px; color:#888; border:1px solid #D8D8D8; border-radius:3px; padding:0 4px; font-weight:700; }
+  .pl-title { font-size:13.5px; color:#1A4FBA; font-weight:700; }
+  .pl-adv { font-size:10px; color:#888; font-weight:600; }
+  .pl-url { font-size:11px; color:#1EA362; margin-top:1px; }
+  .pl-desc { font-size:11.5px; color:#555; margin-top:4px; line-height:1.45; }
+  .own-flag { font-size:9px; font-weight:800; color:#fff; background:#DC2626; border-radius:5px; padding:1px 6px; }
+
+  /* ===== 쇼핑검색 상품 광고 ===== */
+  .sh-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding-top:6px; }
+  .sh-card { border:1px solid #EEE; border-radius:9px; padding:8px; position:relative; }
+  .sh-card.flag { border:1.5px solid #F3C6CB; background:#FFF7F8; }
+  .sh-img { height:78px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:30px; }
+  .sh-adtag { position:absolute; top:11px; left:11px; font-size:8.5px; font-weight:800; color:#555; background:rgba(255,255,255,.9); border:1px solid #DDD; border-radius:4px; padding:0 4px; }
+  .sh-mall { font-size:9.5px; color:#888; margin-top:6px; font-weight:600; }
+  .sh-name { font-size:11.5px; color:#1A1A1A; font-weight:600; line-height:1.3; margin-top:2px; min-height:30px; }
+  .sh-price { font-size:14px; font-weight:800; color:#1A1A1A; margin-top:3px; }
+  .sh-rate { font-size:10px; color:#F5B301; font-weight:700; margin-top:2px; }
+  .sh-rate span { color:#999; font-weight:600; }
+
+  /* ===== 스크럽 후보 알림 ===== */
+  .scrub-list { display:flex; flex-direction:column; gap:12px; }
+  .scrub-item { border:1px solid #F3C6CB; border-left:4px solid #DC2626; border-radius:12px;
+    padding:14px 16px; background:linear-gradient(90deg,#FFF5F6 0%,#FFF 60%);
+    display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  .scrub-kw { flex:none; }
+  .kw-own { display:inline-block; font-size:11px; font-weight:800; color:#D8404D; background:#FFE3E6; border-radius:8px; padding:4px 11px; white-space:nowrap; }
+  .scrub-plane { font-size:9px; font-weight:800; padding:1px 7px; border-radius:5px; background:#EEF1F5; color:#566; margin-left:6px; }
+  .scrub-mid { flex:1; min-width:200px; }
+  .scrub-comp { font-size:12.5px; font-weight:800; color:#1A1A1A; }
+  .scrub-copy { font-size:11.5px; color:#666; margin-top:3px; }
+  .scrub-copy b { color:#D8404D; }
+  .scrub-date { font-size:10px; color:#AAA; margin-top:3px; font-weight:600; }
+  .scrub-right { flex:none; text-align:right; }
+  .scrub-alert { font-size:12px; font-weight:800; color:#DC2626; white-space:nowrap; }
+  .scrub-sev { font-size:9px; font-weight:800; padding:2px 8px; border-radius:10px; margin-left:6px; }
+  .scrub-sev.high { background:#FEE2E2; color:#DC2626; }
+  .scrub-sev.mid  { background:#FEF3C7; color:#92400E; }
+  .scrub-action { font-size:10.5px; font-weight:600; color:#4A4A4A; background:#F5F5F5; border-radius:6px; padding:3px 9px; display:inline-block; margin-top:6px; }
+
+  .playbook-note { background:#FFF8E6; border:1px solid #F5E0A8; border-radius:10px;
+    padding:11px 16px; font-size:11.5px; color:#92400E; font-weight:600; margin-top:18px; line-height:1.6; }
+  .playbook-note b { color:#1A1A1A; }
+
+  /* ===== 경쟁사 소재 소구 트렌드 ===== */
+  .soge-bar-row { display:flex; align-items:center; gap:10px; padding:8px 0; }
+  .soge-name { font-size:12px; font-weight:700; color:#1A1A1A; width:120px; flex:none; }
+  .soge-track { flex:1; height:12px; background:#F0F0F0; border-radius:6px; overflow:hidden; }
+  .soge-fill { height:100%; border-radius:6px; }
+  .soge-val { font-size:11.5px; font-weight:800; color:#1A1A1A; width:80px; text-align:right; flex:none; }
+  .soge-val span { color:#999; font-weight:600; font-size:10.5px; }
+  .soge-insight .ins-row { display:flex; gap:9px; padding:9px 0; border-bottom:1px solid #F5F5F5; font-size:12px; color:#444; line-height:1.6; }
+  .soge-insight .ins-row:last-child { border-bottom:none; }
+  .soge-insight b { color:#1A1A1A; }
+  .soge-cr-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .soge-cr { border:1px solid #EAEAEA; border-radius:10px; padding:13px 14px; }
+  .soge-cr-type { font-size:10.5px; font-weight:800; padding:2px 9px; border-radius:10px; color:#fff; display:inline-block; margin-bottom:9px; }
+  .soge-cr-td { font-size:12.5px; font-weight:700; color:#1A1A1A; line-height:1.4; }
+  .soge-cr-img { font-size:10.5px; color:#888; margin-top:9px; line-height:1.4; }
+  .soge-cr-img b { color:#6B6B6B; }
+  .soge-cr-comp { font-size:10px; color:#D8404D; font-weight:700; margin-top:7px; }
+  .mgfa-plat { font-size:10px; font-weight:800; color:#fff; padding:2px 8px; border-radius:6px; }
+  .mgfa-fmt { font-size:10px; font-weight:700; color:#6B6B6B; background:#F0F0F0; padding:2px 8px; border-radius:6px; }
+  /* 클릭 가능한 소재 카드 + 미리보기 모달 */
+  .soge-cr.clickable { cursor:pointer; transition:transform .15s, box-shadow .15s, border-color .15s; }
+  .soge-cr.clickable:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.07); border-color:#D8404D; }
+  .cr-modal { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:20px; }
+  .cr-modal.on { display:flex; }
+  .cr-modal-card { background:#fff; border-radius:16px; width:min(440px,92vw); padding:20px 22px; box-shadow:0 24px 60px rgba(0,0,0,.3); }
+  .cr-modal-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .cr-modal-close { cursor:pointer; color:#999; font-size:16px; font-weight:700; flex:none; }
+  .cr-modal-close:hover { color:#1A1A1A; }
+  .cr-modal-preview { background:#F6F7F9; border:1.5px dashed #D8D8D8; border-radius:12px; padding:44px 16px; text-align:center; }
+  .cr-prev-icon { font-size:40px; margin-bottom:8px; opacity:.55; }
+  .cr-prev-txt { font-size:13px; font-weight:700; color:#6B6B6B; }
+  .cr-prev-sub { font-size:14px; font-weight:800; color:#D8404D; margin-top:6px; }
+  .cr-modal-meta { margin-top:16px; font-size:12px; color:#4A4A4A; line-height:1.8; }
+  .cr-modal-meta b { color:#1A1A1A; margin-right:6px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">경쟁사 광고 모니터링</div>
+        <div class="page-sub">네이버 파워링크·쇼핑검색 지면 캡처 · 자사 키워드 도용 스크럽 후보 감지</div>
+      </div>
+      <div class="page-meta">
+        <span class="goal">🔎 검색광고 모니터링</span>
+        <span class="live">⦿ LIVE</span>
+      </div>
+    </div>
+
+    <!-- 핵심 인사이트 (전역 CSS로 숨김) -->
+    <div class="section-title" style="margin-top:2px;">
+      핵심 인사이트 · 마케팅 시사점
+      <span class="section-title-sub">검색광고 모니터링 핵심 4가지</span>
+    </div>
+    <div class="headline-grid">
+      <div class="headline-card crit"><div class="headline-icon">🔴</div><div class="headline-text"><b>자사 상표 키워드 도용 5건</b> — 경쟁사가 '약손명가·올리리라밴드'로 광고 노출, 스크럽 신청 검토</div></div>
+      <div class="headline-card good"><div class="headline-icon">🟢</div><div class="headline-text"><b>브랜드 키워드 1위 방어</b> — 파워링크·쇼핑검색 상단 자사 정품 노출 유지</div></div>
+      <div class="headline-card warn"><div class="headline-icon">🟡</div><div class="headline-text"><b>일반 키워드 경쟁 심화</b> — 미투 브랜드 저가 소구 증가, 차별화 카피 필요</div></div>
+      <div class="headline-card info"><div class="headline-icon">📸</div><div class="headline-text"><b>지면 캡처 자동 수집</b> — 파워링크·쇼핑검색 일 24건 캡처, 증적 자동 보관</div></div>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpi-grid cols-4">
+      <div class="kpi-card">
+        <div class="kpi-label">모니터링 키워드</div>
+        <div class="kpi-value">18<span class="kpi-unit">종</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">금일 지면 캡처</div>
+        <div class="kpi-value">24<span class="kpi-unit">건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">경쟁사 노출</div>
+        <div class="kpi-value">36<span class="kpi-unit">건</span></div>
+      </div>
+      <div class="kpi-card featured">
+        <div class="kpi-label">🚨 스크럽 후보</div>
+        <div class="kpi-value" style="color:#DC2626;">5<span class="kpi-unit">건</span></div>
+      </div>
+    </div>
+
+    <!-- 경쟁사 디스플레이·소셜 소재 (META·GFA) -->
+    <div class="section-title">
+      경쟁사 디스플레이·소셜 소재 (META · GFA)
+      <span class="section-title-sub">메타·네이버 GFA 경쟁사 소재 이미지·문안 활용 트렌드</span>
+    </div>
+    <div class="plane-bar">
+      <span class="plane-label">매체</span>
+      <span class="filter-chip mgfa active" onclick="setMgfa('all',this)">전체</span>
+      <span class="filter-chip mgfa" onclick="setMgfa('meta',this)">META</span>
+      <span class="filter-chip mgfa" onclick="setMgfa('gfa',this)">GFA</span>
+    </div>
+    <div class="two-col" style="grid-template-columns:1fr 1fr;align-items:stretch;margin-bottom:16px;">
+      <div class="chart-card" style="margin-bottom:0;">
+        <div class="section-title">소구 유형 분포<span class="section-title-sub" id="mgfa-dist-sub">메타·GFA 소재 41건 분류</span></div>
+        <div id="mgfa-dist"></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:0;">
+        <div class="section-title">이미지·문안 활용 요약<span class="section-title-sub">소재 포맷·카피 트렌드</span></div>
+        <div class="soge-insight" id="mgfa-insight"></div>
+      </div>
+    </div>
+    <div class="soge-cr-grid" id="mgfa-cr-grid" style="margin-bottom:32px;"></div>
+
+    <!-- 경쟁사 검색광고 소재 -->
+    <div class="section-title">
+      경쟁사 검색광고 소재
+      <span class="section-title-sub">네이버 파워링크·쇼핑검색 지면 실시간 캡처 · 증적 보관</span>
+    </div>
+    <div class="plane-bar">
+      <span class="plane-label">광고 지면</span>
+      <span class="filter-chip plane active" onclick="setPlane('powerlink',this)">파워링크</span>
+      <span class="filter-chip plane" onclick="setPlane('shopping',this)">쇼핑검색</span>
+    </div>
+    <div class="cap-grid" id="cap-grid"></div>
+
+    <!-- 경쟁사 소재 소구 트렌드 -->
+    <div class="section-title">
+      경쟁사 소재 소구 트렌드
+      <span class="section-title-sub">캡처된 경쟁사 검색광고 소재 분석 · T&amp;D·이미지 소구 포인트 요약</span>
+    </div>
+    <div class="two-col" style="grid-template-columns:1fr 1fr;align-items:stretch;margin-bottom:16px;">
+      <div class="chart-card" style="margin-bottom:0;">
+        <div class="section-title">소구 유형 분포<span class="section-title-sub">경쟁사 소재 36건 분류</span></div>
+        <div id="soge-dist"></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:0;">
+        <div class="section-title">소재 트렌드 요약<span class="section-title-sub">T&amp;D·이미지 활용 트렌드</span></div>
+        <div class="soge-insight" id="soge-insight"></div>
+      </div>
+    </div>
+    <div class="soge-cr-grid" id="soge-cr-grid" style="margin-bottom:32px;"></div>
+
+    <!-- 스크럽 후보 -->
+    <div class="section-title">
+      🚨 경쟁사 검색광고 스크럽 후보
+      <span class="section-title-sub">자사 상표·브랜드 키워드를 사용한 경쟁사 광고 — 스크럽(상표권 보호) 신청 검토 대상</span>
+    </div>
+    <div class="scrub-list" id="scrub-list"></div>
+
+    <!-- 소재 미리보기 모달 -->
+    <div class="cr-modal" id="cr-modal" onclick="closeCrModal()">
+      <div class="cr-modal-card" onclick="event.stopPropagation()">
+        <div class="cr-modal-head">
+          <div id="cr-modal-title"></div>
+          <span class="cr-modal-close" onclick="closeCrModal()">✕</span>
+        </div>
+        <div class="cr-modal-preview">
+          <div class="cr-prev-icon">🖼️</div>
+          <div class="cr-prev-txt">소재 미리보기</div>
+          <div class="cr-prev-sub">업데이트 예정</div>
+        </div>
+        <div class="cr-modal-meta" id="cr-modal-meta"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../_assets/sidebar.js"></script>
+<script>
+// ============================================================
+// 네이버 검색광고 지면 캡처 (재현 목업) — 파워링크 / 쇼핑검색
+// flag:true = 자사 상표/브랜드 키워드를 도용한 경쟁사 광고
+// ============================================================
+const POWERLINK = [
+  {
+    kw: '약손명가', time: '2026-06-14 09:35', device: '네이버 모바일',
+    ads: [
+      { adv:'약손명가 공식', ours:true, title:'약손명가 헬스케어 공식몰', url:'smartstore.naver.com/yakson', desc:'리프팅밴드·패치·골기 스톤 공식 정품 · 47년 노하우 · 오늘출발' },
+      { adv:'메디뷰티몰', flag:true, ownKw:'약손명가', title:'리프팅밴드 최저가 — 약손 NO', url:'medibeautymall.com', desc:'약손보다 저렴한 탄력 리프팅밴드 · 오늘 단독 특가 1+1' },
+    ],
+  },
+  {
+    kw: '리프팅밴드', time: '2026-06-14 09:32', device: '네이버 모바일',
+    ads: [
+      { adv:'약손명가 공식', ours:true, title:'약손명가 리프팅밴드 공식', url:'smartstore.naver.com/yakson', desc:'턱선 고정 리프팅밴드 · 공식 정품 · 내구성 강함 리뷰 1만+' },
+      { adv:'메디뷰티', title:'턱라인 리프팅밴드 1+1 기획전', url:'medibeauty.co.kr', desc:'탄력 밴드 1+1 한정 · 무료배송 · 당일발송' },
+      { adv:'에이뷰티', title:'V라인 밴드 베스트', url:'abeauty.kr', desc:'가벼운 데일리 리프팅밴드 · 리뷰 이벤트' },
+    ],
+  },
+  {
+    kw: '약손명가 패치', time: '2026-06-12 14:08', device: '네이버 PC',
+    ads: [
+      { adv:'약손명가 공식', ours:true, title:'약손명가 리프팅패치 (PDRN)', url:'smartstore.naver.com/yakson', desc:'PDRN 탄력 패치 공식 정품 · 자국 없는 흡수' },
+      { adv:'PDRN랩', flag:true, ownKw:'약손명가', title:'PDRN 패치 약손보다 저렴', url:'pdrnlab.co.kr', desc:'약손명가 대신 PDRN랩 · 동일 성분 반값' },
+    ],
+  },
+];
+
+const SHOPPING = [
+  {
+    kw: '올리리라밴드', time: '2026-06-14 10:02', device: '네이버 모바일',
+    ads: [
+      { adv:'올리리라 공식', ours:true, name:'올리리라밴드 정품', price:'318,000', mall:'올리리라', rate:4.6, reviews:2730, emoji:'🎗️', color:'#EAF1FB' },
+      { adv:'끌올뷰티', flag:true, ownKw:'올리리라밴드', name:'끌어올리는 탄력밴드 1+1', price:'19,900', mall:'끌올뷰티', rate:4.1, reviews:320, emoji:'🩹', color:'#FFF0F2' },
+      { adv:'에이뷰티', name:'V라인 리프팅 밴드', price:'24,900', mall:'에이뷰티', rate:4.3, reviews:880, emoji:'💆', color:'#F0FDF4' },
+      { adv:'약손명가 공식', ours:true, name:'약손명가 리프팅밴드', price:'58,000', mall:'약손명가', rate:4.8, reviews:6420, emoji:'⭐', color:'#FFF7E6' },
+    ],
+  },
+  {
+    kw: '괄사', time: '2026-06-13 21:14', device: '네이버 모바일',
+    ads: [
+      { adv:'골기 공식', ours:true, name:'골기 페이스 스톤', price:'78,000', mall:'골기', rate:4.5, reviews:955, emoji:'🪨', color:'#FBF3DC' },
+      { adv:'르마하', flag:true, ownKw:'골기 괄사', name:'르마하 반지 괄사 마사지', price:'29,000', mall:'르마하', rate:4.3, reviews:4300, emoji:'💍', color:'#F2F2F2' },
+      { adv:'유유존', name:'로즈쿼츠 괄사 스톤', price:'34,000', mall:'유유존', rate:4.2, reviews:2900, emoji:'💗', color:'#FCEDF2' },
+      { adv:'골기 공식', ours:true, name:'골기 바디 스톤', price:'73,000', mall:'골기', rate:4.4, reviews:540, emoji:'🟡', color:'#FBF3DC' },
+    ],
+  },
+];
+
+const SCRUB = [
+  { kw:'약손명가', plane:'파워링크', comp:'메디뷰티몰', copy:'리프팅밴드 최저가 — <b>약손</b> NO', date:'2026-06-14', sev:'high' },
+  { kw:'올리리라밴드', plane:'쇼핑검색', comp:'끌올뷰티', copy:'끌어올리는 탄력밴드 1+1 (<b>올리리라밴드</b> 검색 노출)', date:'2026-06-14', sev:'high' },
+  { kw:'약손명가 리프팅밴드', plane:'파워링크', comp:'뷰티스킨랩', copy:'<b>약손</b> 대신 이거 쓰세요 · 탄력밴드', date:'2026-06-13', sev:'high' },
+  { kw:'약손명가 패치', plane:'파워링크', comp:'PDRN랩', copy:'PDRN 패치 <b>약손</b>보다 저렴', date:'2026-06-12', sev:'high' },
+  { kw:'골기 괄사', plane:'쇼핑검색', comp:'르마하', copy:'르마하 반지 괄사 (<b>골기 괄사</b> 검색 노출)', date:'2026-06-13', sev:'mid' },
+];
+
+let curPlane = 'powerlink';
+
+function plAd(a) {
+  const flagBadge = a.flag ? `<span class="own-flag">⚠ 자사 키워드</span>` : '';
+  const advBadge = a.ours ? `<span class="pl-adv" style="color:#D8404D;">· 자사</span>` : `<span class="pl-adv">· ${a.adv}</span>`;
+  return `<div class="pl-ad${a.flag ? ' flag' : ''}">
+    <div class="pl-row1"><span class="pl-tag">광고</span>${flagBadge}</div>
+    <div class="pl-title">${a.title} ${advBadge}</div>
+    <div class="pl-url">${a.url}</div>
+    <div class="pl-desc">${a.desc}</div>
+  </div>`;
+}
+function shCard(a) {
+  return `<div class="sh-card${a.flag ? ' flag' : ''}">
+    <div class="sh-img" style="background:${a.color};">${a.emoji}</div>
+    <span class="sh-adtag">광고</span>
+    <div class="sh-mall">${a.mall}${a.ours ? ' · 자사' : ''} ${a.flag ? '<span class="own-flag">⚠ 자사 키워드</span>' : ''}</div>
+    <div class="sh-name">${a.name}</div>
+    <div class="sh-price">${a.price}<span style="font-size:11px;font-weight:600;">원</span></div>
+    <div class="sh-rate">★ ${a.rate.toFixed(1)} <span>(${a.reviews.toLocaleString()})</span></div>
+  </div>`;
+}
+function capCard(c, planeLabel, bodyHtml) {
+  return `<div class="cap-card">
+    <div class="cap-head">
+      <div class="cap-search">
+        <span class="cap-n">N</span>
+        <span class="cap-kw">${c.kw}</span>
+        <span class="cap-glass">🔍</span>
+      </div>
+      <div class="cap-meta">
+        <span class="cap-plane-tag">${planeLabel}</span>
+        <span>📸 캡처 ${c.time}</span>
+        <span>· ${c.device}</span>
+      </div>
+    </div>
+    <div class="cap-body">${bodyHtml}</div>
+  </div>`;
+}
+function renderGallery() {
+  const grid = document.getElementById('cap-grid');
+  if (curPlane === 'powerlink') {
+    grid.innerHTML = POWERLINK.map(c => capCard(c, '파워링크', c.ads.map(plAd).join(''))).join('');
+  } else {
+    grid.innerHTML = SHOPPING.map(c => capCard(c, '쇼핑검색', `<div class="sh-grid">${c.ads.map(shCard).join('')}</div>`)).join('');
+  }
+}
+function setPlane(p, el) {
+  curPlane = p;
+  document.querySelectorAll('.filter-chip.plane').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  renderGallery();
+}
+
+function renderScrub() {
+  document.getElementById('scrub-list').innerHTML = SCRUB.map(s => {
+    const sevLabel = s.sev === 'high' ? '높음' : '중간';
+    const alertTxt = s.sev === 'high' ? '🚨 스크럽 신청 필요' : '⚠ 스크럽 검토';
+    return `<div class="scrub-item">
+      <div class="scrub-kw"><span class="kw-own">자사 KW · ${s.kw}</span><span class="scrub-plane">${s.plane}</span></div>
+      <div class="scrub-mid">
+        <div class="scrub-comp">${s.comp} <span style="font-size:10px;color:#999;font-weight:600;">경쟁사 광고</span></div>
+        <div class="scrub-copy">"${s.copy}"</div>
+        <div class="scrub-date">📸 캡처 ${s.date}</div>
+      </div>
+      <div class="scrub-right">
+        <div class="scrub-alert">${alertTxt}<span class="scrub-sev ${s.sev}">${sevLabel}</span></div>
+        <div class="scrub-action">상표권 스크럽 신청 검토 — 담당자 승인 후 접수</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+renderGallery();
+renderScrub();
+
+// ===== 경쟁사 소재 소구 트렌드 =====
+const SOGE_DIST = [
+  { type:'가격·할인',     pct:38, n:14, color:'#DC2626' },
+  { type:'효과·성능',     pct:25, n:9,  color:'#15803D' },
+  { type:'프로모션(1+1)', pct:17, n:6,  color:'#F59E0B' },
+  { type:'성분 강조',     pct:11, n:4,  color:'#1D4ED8' },
+  { type:'신뢰·리뷰',     pct:6,  n:2,  color:'#7C3AED' },
+  { type:'디자인·패키지', pct:3,  n:1,  color:'#9CA3AF' },
+];
+document.getElementById('soge-dist').innerHTML = SOGE_DIST.map(s => `
+  <div class="soge-bar-row">
+    <span class="soge-name">${s.type}</span>
+    <div class="soge-track"><div class="soge-fill" style="width:${s.pct}%;background:${s.color};"></div></div>
+    <span class="soge-val">${s.pct}% <span>${s.n}건</span></span>
+  </div>`).join('');
+
+const SOGE_INSIGHT = [
+  { ic:'📝', t:"<b>T&D 트렌드</b> — 제목·설명은 '최저가·할인'(38%) 중심, '1+1·증정' 프로모션(17%) 빈번. 가격 소구 과열." },
+  { ic:'🖼️', t:"<b>이미지 트렌드</b> — 제품 단독컷 + 대형 가격 배지 + '특가·한정' 라벨이 주류." },
+  { ic:'🎯', t:"<b>자사 권고</b> — '효과·내구성·리뷰 1만+' 신뢰 소구로 차별화, 가격 경쟁 회피·프리미엄 포지션 유지 (제안)." },
+];
+document.getElementById('soge-insight').innerHTML = SOGE_INSIGHT.map(x => `<div class="ins-row"><span>${x.ic}</span><span>${x.t}</span></div>`).join('');
+
+const SOGE_CR = [
+  { type:'가격·할인',     color:'#DC2626', td:'"리프팅밴드 최저가 — 오늘 단독특가"', img:'제품 단독컷 + 빨강 가격 배지', comp:'메디뷰티몰' },
+  { type:'프로모션(1+1)', color:'#F59E0B', td:'"탄력밴드 1+1 + 사은품 증정"',      img:'2개 묶음컷 + 1+1 스티커',   comp:'끌올뷰티' },
+  { type:'효과·성능',     color:'#15803D', td:'"PDRN 탄력 패치 — 7일 변화"',       img:'비포&애프터 분할컷',        comp:'PDRN랩' },
+  { type:'성분 강조',     color:'#1D4ED8', td:'"PDRN·콜라겐 고함량 성분"',         img:'성분 클로즈업 + 함량 그래프', comp:'뷰티스킨랩' },
+];
+document.getElementById('soge-cr-grid').innerHTML = SOGE_CR.map(c => `
+  <div class="soge-cr">
+    <span class="soge-cr-type" style="background:${c.color};">${c.type}</span>
+    <div class="soge-cr-td">${c.td}</div>
+    <div class="soge-cr-img">🖼️ <b>이미지</b> ${c.img}</div>
+    <div class="soge-cr-comp">▸ ${c.comp}</div>
+  </div>`).join('');
+
+// ===== 경쟁사 디스플레이·소셜 소재 (META · GFA) — 전체/META/GFA 필터 =====
+const MGFA = {
+  all: { n:41,
+    dist:[['후기·UGC',30,12,'#1877F2'],['비포&애프터',24,10,'#15803D'],['할인·프로모션',18,7,'#DC2626'],['디바이스 시연',15,6,'#F59E0B'],['인플루언서',9,4,'#7C3AED'],['성분·효과',4,2,'#9CA3AF']],
+    insight:[['🎬',"<b>이미지·영상</b> — 실사용 후기 영상·UGC 비중 최다(30%), 턱선 비포&애프터 분할컷 빈번."],['📝',"<b>문안</b> — '2주 써본 후기'·'한 달 변화' 체험형 카피 + 할인코드 CTA 조합."],['🎯',"<b>자사 권고</b> — 정품 신뢰(리뷰 1만+)·임상 근거 영상으로 차별화, 과장 표현 회피 (제안)."]] },
+  meta: { n:24,
+    dist:[['후기·UGC',38,9,'#1877F2'],['비포&애프터',25,6,'#15803D'],['인플루언서',17,4,'#7C3AED'],['할인·프로모션',12,3,'#DC2626'],['성분·효과',8,2,'#9CA3AF']],
+    insight:[['🎬',"<b>이미지·영상</b> — 릴스·피드 실사용 후기 영상이 핵심(38%), 인플루언서 협찬 콘텐츠 활발."],['📝',"<b>문안</b> — '솔직 후기'·'내돈내산' 체험형 카피 중심, 댓글 유도 CTA."],['🎯',"<b>자사 권고</b> — 진성 리뷰어 협업 + 임상 근거로 신뢰 차별화 (제안)."]] },
+  gfa: { n:17,
+    dist:[['할인·프로모션',35,6,'#DC2626'],['디바이스 시연',35,6,'#F59E0B'],['비포&애프터',18,3,'#15803D'],['후기·UGC',12,2,'#1877F2']],
+    insight:[['🖼️',"<b>이미지</b> — 제품 단독컷 + 큰 가격 배지, 5분 시연 슬라이드가 주류."],['📝',"<b>문안</b> — '오늘만 할인'·'간편 시연' 즉시 행동 유도 카피."],['🎯',"<b>자사 권고</b> — 효과·내구성 강조 시연 콘텐츠로 가격 경쟁 탈피 (제안)."]] },
+};
+const MGFA_CR = [
+  { plat:'Meta', platColor:'#1877F2', fmt:'영상',      type:'후기·UGC',      tColor:'#1877F2', copy:'"2주 써본 리얼 후기"',      comp:'메디뷰티' },
+  { plat:'Meta', platColor:'#1877F2', fmt:'캐러셀',     type:'비포&애프터',   tColor:'#15803D', copy:'"턱선 before/after 7일"',  comp:'끌올뷰티' },
+  { plat:'Meta', platColor:'#1877F2', fmt:'영상',      type:'인플루언서',    tColor:'#7C3AED', copy:'"뷰티 인플루언서 내돈내산"', comp:'뷰티스킨랩' },
+  { plat:'GFA',  platColor:'#03C75A', fmt:'단일 이미지', type:'할인·프로모션', tColor:'#DC2626', copy:'"오늘만 40% 할인코드"',     comp:'PDRN랩' },
+  { plat:'GFA',  platColor:'#03C75A', fmt:'슬라이드',   type:'디바이스 시연', tColor:'#F59E0B', copy:'"5분 시연 영상"',          comp:'메디뷰티' },
+  { plat:'GFA',  platColor:'#03C75A', fmt:'단일 이미지', type:'비포&애프터',   tColor:'#15803D', copy:'"붓기 전후 비교컷"',        comp:'르마하' },
+];
+let mgfaShown = [];
+function renderMgfa(f) {
+  const d = MGFA[f];
+  document.getElementById('mgfa-dist-sub').textContent = `메타·GFA 소재 ${d.n}건 분류`;
+  document.getElementById('mgfa-dist').innerHTML = d.dist.map(s => `
+    <div class="soge-bar-row">
+      <span class="soge-name">${s[0]}</span>
+      <div class="soge-track"><div class="soge-fill" style="width:${s[1]}%;background:${s[3]};"></div></div>
+      <span class="soge-val">${s[1]}% <span>${s[2]}건</span></span>
+    </div>`).join('');
+  document.getElementById('mgfa-insight').innerHTML = d.insight.map(x => `<div class="ins-row"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('');
+  mgfaShown = f === 'all' ? MGFA_CR : MGFA_CR.filter(c => f === 'meta' ? c.plat === 'Meta' : c.plat === 'GFA');
+  document.getElementById('mgfa-cr-grid').innerHTML = mgfaShown.map((c, i) => `
+    <div class="soge-cr clickable" onclick="openCrModal(${i})">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:9px;">
+        <span class="mgfa-plat" style="background:${c.platColor};">${c.plat}</span>
+        <span class="mgfa-fmt">${c.fmt}</span>
+      </div>
+      <span class="soge-cr-type" style="background:${c.tColor};">${c.type}</span>
+      <div class="soge-cr-td">${c.copy}</div>
+      <div class="soge-cr-comp">▸ ${c.comp} · 클릭하여 소재 보기</div>
+    </div>`).join('');
+}
+function setMgfa(f, el) {
+  document.querySelectorAll('.filter-chip.mgfa').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  renderMgfa(f);
+}
+renderMgfa('all');
+
+// ===== 소재 미리보기 모달 (예시 — 업데이트 예정) =====
+function openCrModal(i) {
+  const c = mgfaShown[i];
+  document.getElementById('cr-modal-title').innerHTML =
+    `<span class="mgfa-plat" style="background:${c.platColor};">${c.plat}</span> <span class="mgfa-fmt">${c.fmt}</span> <span class="soge-cr-type" style="background:${c.tColor};margin-left:2px;">${c.type}</span>`;
+  document.getElementById('cr-modal-meta').innerHTML =
+    `<div><b>문안</b>${c.copy}</div><div><b>경쟁사</b>${c.comp}</div>`;
+  document.getElementById('cr-modal').classList.add('on');
+}
+function closeCrModal() { document.getElementById('cr-modal').classList.remove('on'); }
+</script>
+
+</body>
+</html>

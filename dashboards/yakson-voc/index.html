@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>약손명가헬스케어 · VOC 종합</title>
+<link rel="stylesheet" href="../_assets/dashboard.css">
+<style>
+  /* ===== 선택 바 ===== */
+  .sel-label { font-size:11px; color:#999; font-weight:700; margin-right:4px; align-self:center; }
+
+  /* ===== 별점 트렌드 SVG 라인차트 ===== */
+  .star-chart-wrap { width:100%; overflow:hidden; }
+  .star-svg { width:100%; height:220px; display:block; }
+  .star-axis { font-size:9px; fill:#999; font-weight:600; }
+  .star-grid { stroke:#F0F0F0; stroke-width:1; }
+  .star-area { fill:rgba(216,64,77,0.08); }
+  .star-line { fill:none; stroke:#D8404D; stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+  .star-dot { fill:#D8404D; stroke:#fff; stroke-width:2; }
+
+  /* ===== 별점 분포 바 ===== */
+  .star-bar-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #F5F5F5; }
+  .star-bar-row:last-child { border-bottom:none; }
+  .star-label { font-size:13px; font-weight:700; color:#F5B301; width:28px; flex-shrink:0; }
+  .star-track { flex:1; height:14px; background:#F0F0F0; border-radius:7px; overflow:hidden; }
+  .star-fill { height:100%; border-radius:7px; background:linear-gradient(90deg,#F5B301,#FFD93D); }
+  .star-pct { font-size:12px; font-weight:700; color:#1A1A1A; width:36px; text-align:right; flex-shrink:0; }
+
+  /* ===== 키워드 빈도 바 ===== */
+  .kw-bar-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #F5F5F5; }
+  .kw-bar-row:last-child { border-bottom:none; }
+  .kw-label { font-size:12.5px; color:#1A1A1A; font-weight:600; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .kw-track { width:140px; height:10px; background:#F0F0F0; border-radius:5px; overflow:hidden; flex-shrink:0; }
+  .kw-fill-pos { height:100%; border-radius:5px; background:linear-gradient(90deg,#10b981,#34D399); }
+  .kw-fill-warn { height:100%; border-radius:5px; background:linear-gradient(90deg,#f59e0b,#FCD34D); }
+  .kw-fill-crit { height:100%; border-radius:5px; background:linear-gradient(90deg,#DC2626,#F87171); }
+  .kw-freq { font-size:12px; font-weight:700; color:#6B6B6B; width:40px; text-align:right; flex-shrink:0; }
+  .comp-head-note { font-size:10.5px; color:#DC2626; font-weight:600; margin-bottom:10px; }
+
+  /* ===== 내구성 인식 누적 막대 ===== */
+  .insight-foot { margin-top:14px; padding-top:12px; border-top:1px solid #F5F5F5; font-size:11px; color:#6B6B6B; line-height:1.6; }
+  .dur-bar-wrap { margin-top:4px; }
+  .dur-bar-label { font-size:11px; color:#6B6B6B; font-weight:600; margin-bottom:6px; }
+  .dur-bar-track { display:flex; height:18px; border-radius:9px; overflow:hidden; width:100%; }
+  .dur-seg { height:100%; display:flex; align-items:center; justify-content:center;
+             font-size:10px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; }
+  .dur-seg.strong  { background:#10b981; }
+  .dur-seg.normal  { background:#F5B301; color:#1A1A1A; }
+  .dur-seg.weak    { background:#D1D5DB; color:#6B6B6B; }
+  .dur-legend { display:flex; gap:12px; margin-top:7px; flex-wrap:wrap; }
+  .dur-legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#4A4A4A; }
+  .dur-legend-dot  { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+
+  /* ===== 리뷰 원문 테이블 ===== */
+  .review-snippet { color:#4A4A4A; font-size:12px; max-width:300px; }
+  .star-badge { color:#F5B301; font-size:13px; font-weight:700; letter-spacing:1px; white-space:nowrap; }
+  .kw-pill { display:inline-block; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:10px; background:#F0F0F0; color:#4A4A4A; margin-right:3px; }
+  .kw-pill.pos { background:#DCFCE7; color:#15803D; }
+  .repurchase-yes { display:inline-block; font-size:10px; font-weight:700; color:#15803D; background:#DCFCE7; padding:2px 8px; border-radius:10px; }
+  .repurchase-no  { display:inline-block; font-size:10px; font-weight:700; color:#6B6B6B; background:#F0F0F0; padding:2px 8px; border-radius:10px; }
+  .review-empty { padding:26px 10px; text-align:center; color:#9CA3AF; font-size:12.5px; font-weight:600; }
+
+  /* ===== 경쟁사 표 — 약손명가 강조행 ===== */
+  .comp-row-me td {
+    background: linear-gradient(90deg,#FFF0F2 0%,#FFFFFF 100%);
+    font-weight:800; color:#1A1A1A; border-left:3px solid #D8404D;
+  }
+  .comp-row-me td:first-child { color:#D8404D; }
+  .star-gold { color:#F5B301; font-size:13px; letter-spacing:-1px; }
+
+  /* ===== 영역 구분 ===== */
+  .area-head { display:flex; align-items:baseline; gap:10px; margin:6px 0 14px; padding-bottom:10px; border-bottom:2px solid #F0F0F0; }
+  .area-title { font-size:16px; font-weight:800; color:#1A1A1A; }
+  .area-ctx { font-size:12px; font-weight:700; color:#D8404D; }
+  .area-ctx .ac-chan { color:#1A1A1A; }
+
+  /* ===== 제품 트렌드 (YouTube 인기 영상) ===== */
+  .yt-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .yt-card { border:1px solid #EAEAEA; border-radius:12px; overflow:hidden; background:#fff; transition:transform .18s, box-shadow .18s; }
+  .yt-card:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,.07); }
+  .yt-thumb { position:relative; height:118px; }
+  .yt-thumb-emoji { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:46px; opacity:.5; }
+  .yt-rank { position:absolute; top:8px; left:8px; width:24px; height:24px; border-radius:50%; background:#DC2626; color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; z-index:2; }
+  .yt-play { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:46px; height:32px; background:rgba(255,0,0,.92); border-radius:8px; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .yt-dur { position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,.78); color:#fff; font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; }
+  .yt-body { padding:11px 13px; }
+  .yt-title { font-size:12.5px; font-weight:700; color:#1A1A1A; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:35px; }
+  .yt-meta { font-size:11px; color:#888; margin-top:7px; font-weight:600; }
+  .yt-views { color:#DC2626; font-weight:800; }
+  .yt-kw-summary { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .yt-kw-lab { font-size:12px; font-weight:700; color:#1A1A1A; margin-right:4px; }
+  .yt-kw-pill { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:#D8404D; background:#FFF0F2; border:1px solid #F3C6CB; border-radius:16px; padding:4px 11px; }
+  .yt-kw-rank { font-size:9.5px; font-weight:800; color:#fff; background:#D8404D; border-radius:50%; width:15px; height:15px; display:inline-flex; align-items:center; justify-content:center; }
+  .yt-kw-cnt { font-size:10px; color:#999; font-weight:700; }
+
+  /* ===== 최근 리뷰 트렌드 및 소구점 제안 ===== */
+  .sogu-list { display:flex; flex-direction:column; gap:10px; }
+  .sogu-item { display:flex; align-items:center; gap:16px; padding:13px 16px; border:1px solid #EAEAEA; border-radius:12px; background:#fff; flex-wrap:wrap; transition:border-color .15s, box-shadow .15s; }
+  .sogu-item:hover { border-color:#F3C6CB; box-shadow:0 4px 14px rgba(0,0,0,.05); }
+  .sogu-head { min-width:150px; }
+  .sogu-theme { font-size:13px; font-weight:800; color:#1A1A1A; margin-bottom:5px; }
+  .sogu-mo { font-size:10.5px; font-weight:800; color:#15803D; background:#DCFCE7; border-radius:10px; padding:3px 9px; white-space:nowrap; }
+  .sogu-quote { flex:1; min-width:200px; font-size:12px; color:#666; font-style:italic; }
+  .sogu-point { flex:1; min-width:230px; font-size:12px; font-weight:700; color:#D8404D; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main">
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">VOC 종합 · 리뷰 &amp; 랭킹 분석</div>
+        <div class="page-sub">채널·제품별 별점 트렌드 / 리뷰 · 키워드 · 경쟁사 비교</div>
+      </div>
+      <div class="page-meta">
+        <span class="goal">💬 리테일 VOC</span>
+        <span class="live">⦿ LIVE</span>
+      </div>
+    </div>
+
+    <!-- ===== 핵심 인사이트 (전역 CSS로 숨김) ===== -->
+    <div class="section-title" style="margin-top:2px;">
+      핵심 인사이트 · 마케팅 시사점
+      <span class="section-title-sub">VOC에서 도출한 핵심 4가지</span>
+    </div>
+    <div class="headline-grid">
+      <div class="headline-card crit"><div class="headline-icon">🔴</div><div class="headline-text"><b>재구매 트리거 부재</b>(반영구 제품) — 소모성 결합으로 재구매 주기 설계 필요</div></div>
+      <div class="headline-card good"><div class="headline-icon">🟢</div><div class="headline-text"><b>내구성 신뢰 59% = 강점</b> — 상세페이지·소재 전면 배치로 전환 강화</div></div>
+      <div class="headline-card warn"><div class="headline-icon">🟡</div><div class="headline-text"><b>브랜드스토어 별점 우위</b> — 채널별 VOC 격차를 소재·CS에 반영</div></div>
+      <div class="headline-card info"><div class="headline-icon">📊</div><div class="headline-text"><b>경쟁사 대비 별점 우위</b> — VOC를 소재 카피·상세페이지 소스로 활용</div></div>
+    </div>
+
+    <!-- ===== 채널 + 제품 선택 ===== -->
+    <div class="filter-bar">
+      <span class="sel-label">채널</span>
+      <span class="filter-chip chan active" onclick="setChannel('all',this)">전체</span>
+      <span class="filter-chip chan" onclick="setChannel('store',this)">브랜드스토어</span>
+      <span class="filter-chip chan" onclick="setChannel('coupang',this)">쿠팡</span>
+      <span class="filter-chip chan" onclick="setChannel('etc',this)">기타</span>
+    </div>
+    <div class="filter-bar" style="margin-top:-10px;">
+      <span class="sel-label">제품</span>
+      <span class="filter-chip prod active" onclick="setProduct('all',this)">전체</span>
+      <span class="filter-chip prod" onclick="setProduct('band',this)">리프팅밴드 PRO</span>
+      <span class="filter-chip prod" onclick="setProduct('patch',this)">리프팅패치</span>
+      <span class="filter-chip prod" onclick="setProduct('gypsum',this)">석고 마스크팩</span>
+      <span class="filter-chip prod" onclick="setProduct('mask',this)">PDRN 마스크팩</span>
+      <span class="filter-chip prod" onclick="setProduct('olli',this)">올리리라밴드</span>
+      <span class="filter-chip prod" onclick="setProduct('stone',this)">골기 페이스 스톤</span>
+      <span class="filter-chip prod" onclick="setProduct('ball',this)">골기 바디 스톤</span>
+    </div>
+
+    <!-- ===== KPI GRID (채널 × 제품 반응형) ===== -->
+    <div class="kpi-grid cols-4" id="kpi-grid"></div>
+
+    <!-- ===================== 별점 트렌드 영역 ===================== -->
+    <div class="area-head">
+      <span class="area-title">⭐ 별점 트렌드</span>
+      <span class="area-ctx" id="trend-ctx"></span>
+    </div>
+    <div class="two-col" style="grid-template-columns:1.5fr 1fr;align-items:stretch;margin-bottom:32px;">
+      <div class="chart-card" style="position:relative;margin-bottom:0;">
+        <div class="section-title">
+          월별 별점 추이
+          <span class="section-title-sub">최근 12개월 가중평균 · 그래프에 마우스를 올리면 상세</span>
+        </div>
+        <div class="star-chart-wrap">
+          <svg class="star-svg" viewBox="0 0 520 200" id="star-svg"></svg>
+        </div>
+        <div class="chart-tip" id="voc-tip"></div>
+        <div style="font-size:10px;color:#999;margin-top:6px;text-align:center;">
+          ■ <span style="color:#D8404D;font-weight:700;">별점 (가중평균)</span> &nbsp; 점선 = 목표 4.8
+        </div>
+      </div>
+      <div class="chart-card" style="margin-bottom:0;">
+        <div class="section-title">
+          별점 분포
+          <span class="section-title-sub" id="star-dist-sub"></span>
+        </div>
+        <div id="star-dist"></div>
+      </div>
+    </div>
+
+    <!-- ===================== 리뷰 영역 ===================== -->
+    <div class="area-head">
+      <span class="area-title">💬 리뷰</span>
+      <span class="area-ctx" id="review-ctx"></span>
+    </div>
+
+    <div class="filter-bar" style="margin-bottom:16px;">
+      <span class="sel-label">별점</span>
+      <span class="filter-chip star active" onclick="setStar('all',this)">전체 별점</span>
+      <span class="filter-chip star" onclick="setStar('5',this)">5★</span>
+      <span class="filter-chip star" onclick="setStar('4',this)">4★</span>
+      <span class="filter-chip star" onclick="setStar('low',this)">3★ 이하</span>
+    </div>
+
+    <div class="two-col even" style="margin-bottom:28px;">
+      <div class="chart-card">
+        <div class="section-title">
+          긍정 키워드 빈도
+          <span class="section-title-sub" id="pos-kw-sub"></span>
+        </div>
+        <div id="pos-kw-list"></div>
+        <div class="insight-foot">
+          <div class="dur-bar-wrap">
+            <div class="dur-bar-label">내구성 인식 분포</div>
+            <div class="dur-bar-track" id="dur-bar-track"></div>
+            <div class="dur-legend" id="dur-legend"></div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="section-title">
+          경쟁 디바이스 불만 키워드
+          <span class="section-title-sub">전기 디바이스 경쟁 분석</span>
+        </div>
+        <p class="comp-head-note">🚨 경쟁사 약점 — 약손명가 차별화 포인트</p>
+        <div id="comp-neg-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== 최근 리뷰 트렌드 및 소구점 제안 (리뷰 원문 위) ===== -->
+    <div class="section-title" style="margin-top:4px;">
+      최근 리뷰 트렌드 및 소구점 제안
+      <span class="section-title-sub">최근 2주 급상승 리뷰 테마 · 광고 카피 소구 앵글 제안</span>
+    </div>
+    <div class="sogu-list" id="sogu-list" style="margin-bottom:28px;"></div>
+
+    <div class="table-card">
+      <div class="section-title">
+        리뷰 원문
+        <span class="section-title-sub" id="review-sub"></span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>별점</th>
+            <th>채널</th>
+            <th>작성일</th>
+            <th>제품</th>
+            <th>리뷰 요약</th>
+            <th class="right">재구매</th>
+          </tr>
+        </thead>
+        <tbody id="review-table"></tbody>
+      </table>
+    </div>
+
+    <!-- ===================== 제품별 유튜브 트렌드 (최하단) ===================== -->
+    <div class="area-head">
+      <span class="area-title">📺 제품별 유튜브 트렌드</span>
+      <span class="area-ctx">대표 키워드 인기 영상 Top 3 · 조회수 기준</span>
+    </div>
+    <div class="filter-bar" style="margin-bottom:16px;">
+      <span class="sel-label">키워드</span>
+      <span class="filter-chip ytkw active" onclick="setYt('리프팅밴드',this)">리프팅밴드</span>
+      <span class="filter-chip ytkw" onclick="setYt('석고팩',this)">석고팩</span>
+      <span class="filter-chip ytkw" onclick="setYt('마스크팩',this)">마스크팩</span>
+      <span class="filter-chip ytkw" onclick="setYt('괄사',this)">괄사</span>
+      <span class="filter-chip ytkw" onclick="setYt('올리리라밴드',this)">올리리라밴드</span>
+    </div>
+    <div class="yt-kw-summary" id="yt-kw-summary"></div>
+    <div class="yt-grid" id="yt-grid" style="margin-bottom:8px;"></div>
+
+  </main>
+</div>
+
+<script src="../_assets/sidebar.js"></script>
+<script>
+// ============================================================
+// 채널 × 제품 데이터 모델
+// ============================================================
+const CHAN = {
+  all:     { label: '전체',        share: 1.00, dStar: 0.00, dPos: 0 },
+  store:   { label: '브랜드스토어', share: 0.52, dStar: 0.08, dPos: 2 },
+  coupang: { label: '쿠팡',        share: 0.33, dStar: -0.06, dPos: -3 },
+  etc:     { label: '기타',        share: 0.15, dStar: -0.02, dPos: -1 },
+};
+// 제품별 base VOC 지표 (reviews 합계 = 10,105 = '전체')
+const PROD = {
+  all:    { label: '전체 제품',   reviews: 10105, star: 4.70, repur: 1.79, pos: 88, dist: [78,15,4,2,1], dur: [59,40,1],
+            kw: [['고정이 잘 돼요',2340],['접착력이 좋아요',1980],['꾸준히 사용하기 좋아요',1620],['붓기 빠짐',1350],['휴대 편함',890]] },
+  band:   { label: '리프팅밴드 PRO', reviews: 3600, star: 4.8, repur: 1.79, pos: 91, dist: [83,12,3,1,1], dur: [67,31,2],
+            kw: [['고정이 잘 돼요',2180],['접착력이 좋아요',1840],['내구성 강함',1290],['턱선 변화 체감',760],['밀착',540]] },
+  patch:  { label: '리프팅패치',  reviews: 1500, star: 4.6, repur: 4.12, pos: 89, dist: [74,18,5,2,1], dur: [58,38,4],
+            kw: [['접착력이 좋아요',1180],['자국 안 남음',940],['PDRN 탄력',760],['소모성 재구매',620],['휴대 편함',410]] },
+  gypsum: { label: '석고 마스크팩', reviews: 1050, star: 4.5, repur: 3.50, pos: 86, dist: [70,20,6,3,1], dur: [52,43,5],
+            kw: [['붓기 진정',880],['쿨링감',720],['마무리 깔끔',560],['향 호불호',430],['가성비',360]] },
+  mask:   { label: 'PDRN 마스크팩', reviews: 1300, star: 4.6, repur: 6.00, pos: 90, dist: [76,16,5,2,1], dur: [55,40,5],
+            kw: [['수분 차오름',980],['진정 효과',860],['탄력 체감',690],['흡수 빠름',520],['순함',410]] },
+  olli:   { label: '올리리라밴드', reviews: 1900, star: 4.6, repur: 1.32, pos: 85, dist: [73,18,5,2,2], dur: [54,42,4],
+            kw: [['5분 사용 간편',980],['온열 만족',840],['붓기 감소',690],['윤곽 선명',520],['충전 오래감',410]] },
+  stone:  { label: '골기 페이스 스톤', reviews: 540, star: 4.5, repur: 3.90, pos: 83, dist: [68,21,6,3,2], dur: [50,45,5],
+            kw: [['선물하기 좋음',520],['디자인 예쁨',430],['손에 잘 잡힘',360],['마사지 시원',280],['휴대 편함',190]] },
+  ball:   { label: '골기 바디 스톤', reviews: 215, star: 4.4, repur: 4.60, pos: 81, dist: [65,22,7,4,2], dur: [46,48,6],
+            kw: [['바디 순환',210],['시원함',180],['그립 좋음',150],['휴대 편함',120],['가성비',90]] },
+};
+
+// 리뷰 원문 — 제품(p) × 채널(ch) × 별점(star) 태깅
+const REVIEWS = [
+  { p:'band', ch:'store',   star:5, date:'2025-11-14', product:'리프팅밴드', snippet:'마스크 위에도 고정 완벽. 야외에서도 흔들림 없이 밀착.', kw:['고정','밀착'], re:true },
+  { p:'band', ch:'store',   star:5, date:'2025-09-30', product:'리프팅밴드', snippet:'한 달 사용 후 턱선 변화 체감. 내구성 전혀 문제없음.', kw:['내구성','재구매'], re:true },
+  { p:'band', ch:'coupang', star:4, date:'2025-10-18', product:'리프팅밴드', snippet:'배송 빠르고 접착력 좋아요. 가격 부담도 덜함.', kw:['접착력','배송'], re:false },
+  { p:'band', ch:'coupang', star:2, date:'2025-08-03', product:'리프팅밴드', snippet:'사이즈가 작아 얼굴에 안 맞았어요. 교환 진행.', kw:['사이즈'], re:false },
+  { p:'patch', ch:'store',  star:5, date:'2025-11-05', product:'리프팅패치', snippet:'PDRN 패치 자국 안 남고 탄력 체감. 재구매 의사 있음.', kw:['PDRN','탄력'], re:true },
+  { p:'patch', ch:'etc',    star:4, date:'2025-09-12', product:'리프팅패치', snippet:'올리브영에서 구매. 접착력 좋고 휴대 편함.', kw:['접착력','휴대'], re:false },
+  { p:'gypsum', ch:'store', star:3, date:'2025-08-20', product:'석고 마스크팩', snippet:'효과는 괜찮은데 향이 강한 편. 민감성은 주의.', kw:['향'], re:false },
+  { p:'gypsum', ch:'coupang', star:4, date:'2025-10-02', product:'석고 마스크팩', snippet:'쿨링감 좋고 붓기 진정. 마무리 깔끔.', kw:['붓기','진정'], re:false },
+  { p:'mask', ch:'store',   star:5, date:'2025-11-09', product:'마스크팩', snippet:'수분 차오르고 진정 효과. 자기 전 루틴으로 자리잡음.', kw:['수분','진정'], re:true },
+  { p:'mask', ch:'etc',     star:5, date:'2025-10-25', product:'마스크팩', snippet:'올리브영 재구매. 흡수 빠르고 순해요.', kw:['흡수','순함','재구매'], re:true },
+  { p:'olli', ch:'store',   star:5, date:'2025-10-22', product:'올리리라밴드', snippet:'아침 5분 사용 후 붓기 감소 체감. 얼굴 윤곽 선명해짐.', kw:['붓기빠짐','윤곽'], re:true },
+  { p:'olli', ch:'coupang', star:3, date:'2025-08-15', product:'올리리라밴드', snippet:'EMS 자극이 생각보다 약했어요. 단계 조절 원함.', kw:['자극'], re:false },
+  { p:'olli', ch:'etc',     star:4, date:'2025-09-08', product:'올리리라밴드', snippet:'충전 오래가고 온열 만족. 케이블이 짧아 아쉬움.', kw:['온열','충전'], re:false },
+  { p:'stone', ch:'etc',    star:5, date:'2025-11-02', product:'골기 페이스 스톤', snippet:'카카오 선물하기로 구매. 패키지 고급, 디자인 예쁨.', kw:['선물','디자인'], re:false },
+  { p:'stone', ch:'store',  star:4, date:'2025-10-05', product:'골기 페이스 스톤', snippet:'그립 좋고 시원함. 휴대 편해 데일리로 사용.', kw:['그립','휴대'], re:false },
+  { p:'stone', ch:'coupang', star:3, date:'2025-08-27', product:'골기 페이스 스톤', snippet:'사용법 익히는 데 시간 걸림. 설명서 보완 필요.', kw:['사용법'], re:false },
+  { p:'ball', ch:'etc',     star:4, date:'2025-09-18', product:'골기 바디 스톤', snippet:'바디 순환 마사지 시원하고 가성비 좋아요.', kw:['바디','순환'], re:true },
+  { p:'ball', ch:'store',   star:4, date:'2025-10-12', product:'골기 바디 스톤', snippet:'손에 잘 잡히고 휴대 편함. 선물로도 좋음.', kw:['그립','휴대'], re:false },
+];
+
+// 경쟁 디바이스 불만 키워드 (정적)
+const COMP_NEG = [
+  { kw:'구성품 누락',      freq:1140, crit:true  },
+  { kw:'EMS 자극 약함',   freq: 980, crit:true  },
+  { kw:'좌우 세기 불균형', freq: 860, crit:true  },
+  { kw:'내구성 이슈',      freq: 730, crit:false },
+  { kw:'효과 체감 어려움', freq: 610, crit:false },
+];
+
+// ===== 상태 =====
+let curChannel = 'all', curProduct = 'all', curStar = 'all';
+const STAR_LABELS = { all: '전체 별점', '5': '5★', '4': '4★', low: '3★ 이하' };
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const ctxLabel = () => `<span class="ac-chan">${CHAN[curChannel].label}</span> · ${PROD[curProduct].label}`;
+
+// ===== KPI =====
+function renderKPI() {
+  const c = CHAN[curChannel], pr = PROD[curProduct];
+  const reviews = Math.round(pr.reviews * c.share);
+  const star = clamp(pr.star + c.dStar, 1, 5);
+  const pos = Math.round(clamp(pr.pos + c.dPos, 0, 100));
+  // kpi-actual → 전월 대비 증감(kpi-delta)으로 표기
+  const card = (label, value, unit, delta, featured) => `
+    <div class="kpi-card${featured ? ' featured' : ''}">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div>
+      <div class="kpi-delta up">${delta}</div>
+    </div>`;
+  document.getElementById('kpi-grid').innerHTML =
+      card('총 리뷰', reviews.toLocaleString(), '건', '전월 대비 +5.2%', true)
+    + card('평균 별점', star.toFixed(1), '점', '전월 대비 +0.1점', false)
+    + card('재구매 리뷰', pr.repur.toFixed(2), '%', '전월 대비 +0.2%p', false)
+    + card('긍정률', pos, '%', '전월 대비 +1.4%p', false);
+}
+
+// ===== 별점 트렌드 라인차트 (동적 y축) =====
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const BASE_TREND = [4.52,4.55,4.60,4.58,4.63,4.65,4.68,4.66,4.70,4.72,4.75,4.73];
+const SW = 520, SH = 200, SPAD = { top:22, right:18, bottom:34, left:44 };
+const scw = SW - SPAD.left - SPAD.right, sch = SH - SPAD.top - SPAD.bottom;
+let TVALS = [], TyMin = 4.4, TyMax = 4.9;
+const sx = i => SPAD.left + (i / (MONTHS.length - 1)) * scw;
+const sy = v => SPAD.top + sch - ((v - TyMin) / (TyMax - TyMin)) * sch;
+
+function renderTrend() {
+  const off = (PROD[curProduct].star - 4.70) + CHAN[curChannel].dStar;
+  TVALS = BASE_TREND.map(v => +clamp(v + off, 4.0, 4.98).toFixed(2));
+  const mn = Math.min.apply(null, TVALS), mx = Math.max.apply(null, TVALS);
+  TyMin = Math.floor((mn - 0.08) * 10) / 10; TyMax = Math.ceil((mx + 0.08) * 10) / 10;
+  if (TyMax - TyMin < 0.4) TyMax = TyMin + 0.4;
+
+  let svg = '';
+  for (let k = 0; k <= 5; k++) {
+    const t = +(TyMin + (TyMax - TyMin) * k / 5).toFixed(2), y = sy(t);
+    svg += `<line class="star-grid" x1="${SPAD.left}" y1="${y}" x2="${SW - SPAD.right}" y2="${y}"/>`;
+    svg += `<text class="star-axis" x="${SPAD.left - 5}" y="${y + 3.5}" text-anchor="end">${t.toFixed(1)}</text>`;
+  }
+  if (4.8 >= TyMin && 4.8 <= TyMax) {
+    const yt = sy(4.8);
+    svg += `<line x1="${SPAD.left}" y1="${yt}" x2="${SW - SPAD.right}" y2="${yt}" stroke="#D8404D" stroke-width="1" stroke-dasharray="4 3" opacity="0.45"/>`;
+  }
+  let area = `M ${sx(0)} ${sy(TyMin)}`;
+  TVALS.forEach((v, i) => { area += ` L ${sx(i)} ${sy(v)}`; });
+  area += ` L ${sx(TVALS.length - 1)} ${sy(TyMin)} Z`;
+  svg += `<path d="${area}" class="star-area"/>`;
+  svg += `<path d="${TVALS.map((v, i) => `${i === 0 ? 'M' : 'L'} ${sx(i)} ${sy(v)}`).join(' ')}" class="star-line"/>`;
+  TVALS.forEach((v, i) => {
+    svg += `<circle class="star-dot" cx="${sx(i)}" cy="${sy(v)}" r="3.5"/>`;
+    const anchor = i === 0 ? 'start' : i === MONTHS.length - 1 ? 'end' : 'middle';
+    svg += `<text class="star-axis" x="${sx(i)}" y="${SH - SPAD.bottom + 14}" text-anchor="${anchor}">${MONTHS[i]}</text>`;
+    if (i % 3 === 0 || i === TVALS.length - 1) {
+      svg += `<text x="${sx(i)}" y="${sy(v) - 8}" text-anchor="middle" font-size="8.5" fill="#D8404D" font-weight="700">${v.toFixed(2)}</text>`;
+    }
+  });
+  svg += `<line id="voc-guide" x1="0" y1="${SPAD.top}" x2="0" y2="${SH - SPAD.bottom}" stroke="#D8404D" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>`;
+  svg += `<circle id="voc-dot" r="5" fill="#D8404D" stroke="#fff" stroke-width="2" opacity="0"/>`;
+  document.getElementById('star-svg').innerHTML = svg;
+}
+
+// 트렌드 hover (1회 바인딩, TVALS/스케일 참조)
+(function () {
+  const svgEl = document.getElementById('star-svg');
+  const tip = document.getElementById('voc-tip');
+  const card = svgEl.closest('.chart-card');
+  svgEl.addEventListener('mousemove', e => {
+    if (!TVALS.length) return;
+    const rect = svgEl.getBoundingClientRect();
+    const vx = (e.clientX - rect.left) / rect.width * SW;
+    let i = Math.round((vx - SPAD.left) / scw * (TVALS.length - 1));
+    i = Math.max(0, Math.min(TVALS.length - 1, i));
+    const gx = sx(i), gy = sy(TVALS[i]);
+    const guide = svgEl.querySelector('#voc-guide'), dot = svgEl.querySelector('#voc-dot');
+    guide.setAttribute('x1', gx); guide.setAttribute('x2', gx); guide.setAttribute('opacity', '1');
+    dot.setAttribute('cx', gx); dot.setAttribute('cy', gy); dot.setAttribute('opacity', '1');
+    tip.innerHTML = `<b>${MONTHS[i]}</b> · <span class="tr">별점 ${TVALS[i].toFixed(2)}</span>`;
+    tip.classList.add('on');
+    const cr = card.getBoundingClientRect();
+    const px = (rect.left - cr.left) + (gx / SW) * rect.width;
+    const py = (rect.top - cr.top) + (gy / SH) * rect.height;
+    tip.style.left = Math.max(6, Math.min(cr.width - tip.offsetWidth - 6, px - tip.offsetWidth / 2)) + 'px';
+    tip.style.top = (py - tip.offsetHeight - 14) + 'px';
+  });
+  svgEl.addEventListener('mouseleave', () => {
+    tip.classList.remove('on');
+    const guide = svgEl.querySelector('#voc-guide'), dot = svgEl.querySelector('#voc-dot');
+    if (guide) guide.setAttribute('opacity', '0');
+    if (dot) dot.setAttribute('opacity', '0');
+  });
+})();
+
+// ===== 별점 분포 =====
+function renderStarDist() {
+  const dist = PROD[curProduct].dist;
+  const labels = ['5★', '4★', '3★', '2★', '1★'];
+  document.getElementById('star-dist').innerHTML = dist.map((pct, i) => `
+    <div class="star-bar-row">
+      <span class="star-label">${labels[i]}</span>
+      <div class="star-track"><div class="star-fill" style="width:${pct}%;"></div></div>
+      <span class="star-pct">${pct}%</span>
+    </div>`).join('');
+  document.getElementById('star-dist-sub').innerHTML = ctxLabel();
+}
+
+// ===== 긍정 키워드 빈도 =====
+function renderPosKw() {
+  const kw = PROD[curProduct].kw, max = kw[0][1];
+  document.getElementById('pos-kw-list').innerHTML = kw.map(k => `
+    <div class="kw-bar-row">
+      <span class="kw-label">${k[0]}</span>
+      <div class="kw-track"><div class="kw-fill-pos" style="width:${Math.round(k[1] / max * 100)}%;"></div></div>
+      <span class="kw-freq">${k[1].toLocaleString()}</span>
+    </div>`).join('');
+  document.getElementById('pos-kw-sub').innerHTML = ctxLabel() + ' · 상위 5개';
+}
+
+// ===== 내구성 인식 분포 =====
+function renderDurability() {
+  const d = PROD[curProduct].dur;
+  document.getElementById('dur-bar-track').innerHTML =
+      `<div class="dur-seg strong" style="width:${d[0]}%;">강해요 ${d[0]}%</div>`
+    + `<div class="dur-seg normal" style="width:${d[1]}%;">보통 ${d[1]}%</div>`
+    + `<div class="dur-seg weak"   style="width:${d[2]}%;"></div>`;
+  document.getElementById('dur-legend').innerHTML =
+      `<div class="dur-legend-item"><div class="dur-legend-dot" style="background:#10b981;"></div>강해요 ${d[0]}%</div>`
+    + `<div class="dur-legend-item"><div class="dur-legend-dot" style="background:#F5B301;"></div>보통 ${d[1]}%</div>`
+    + `<div class="dur-legend-item"><div class="dur-legend-dot" style="background:#D1D5DB;"></div>약함 ${d[2]}%</div>`;
+}
+
+// ===== 리뷰 원문 (채널 × 제품 × 별점) =====
+const CHAN_TAG = { store:'브랜드스토어', coupang:'쿠팡', etc:'기타' };
+function starStrFull(n) { return '★'.repeat(n) + '☆'.repeat(5 - n); }
+function kwPills(arr) { return arr.map(k => `<span class="kw-pill pos">${k}</span>`).join(''); }
+function matchStar(star) {
+  if (curStar === 'all') return true;
+  if (curStar === '5') return star === 5;
+  if (curStar === '4') return star === 4;
+  return star <= 3;
+}
+function renderReviews() {
+  const rows = REVIEWS
+    .filter(r => (curChannel === 'all' || r.ch === curChannel)
+              && (curProduct === 'all' || r.p === curProduct)
+              && matchStar(r.star))
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const tbody = document.getElementById('review-table');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="review-empty">선택한 조건의 리뷰가 없습니다 — 채널·제품·별점을 바꿔 보세요.</div></td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td><span class="star-badge">${starStrFull(r.star)}</span></td>
+        <td style="color:#6B6B6B;white-space:nowrap;font-weight:600;">${CHAN_TAG[r.ch]}</td>
+        <td style="color:#6B6B6B;white-space:nowrap;">${r.date}</td>
+        <td style="font-weight:700;color:#1A1A1A;white-space:nowrap;">${r.product}</td>
+        <td class="review-snippet">${r.snippet} ${kwPills(r.kw)}</td>
+        <td class="right">${r.re ? '<span class="repurchase-yes">재구매 ✓</span>' : '<span class="repurchase-no">–</span>'}</td>
+      </tr>`).join('');
+  }
+  document.getElementById('review-sub').innerHTML = `${CHAN[curChannel].label} · ${PROD[curProduct].label} · ${STAR_LABELS[curStar]} · ${rows.length}건`;
+  document.getElementById('review-ctx').innerHTML = ctxLabel();
+}
+
+// ===== 경쟁 디바이스 불만 키워드 (정적) =====
+function renderCompNeg() {
+  const negMax = COMP_NEG[0].freq;
+  document.getElementById('comp-neg-list').innerHTML = COMP_NEG.map(k => `
+    <div class="kw-bar-row">
+      <span class="kw-label" style="color:${k.crit ? '#DC2626' : '#92400E'};font-weight:700;">${k.kw}</span>
+      <div class="kw-track"><div class="${k.crit ? 'kw-fill-crit' : 'kw-fill-warn'}" style="width:${Math.round(k.freq / negMax * 100)}%;"></div></div>
+      <span class="kw-freq" style="color:${k.crit ? '#DC2626' : '#92400E'};">${k.freq.toLocaleString()}</span>
+    </div>`).join('');
+}
+
+// ===== 오케스트레이터 =====
+function renderAll() {
+  renderKPI();
+  renderTrend();
+  renderStarDist();
+  renderPosKw();
+  renderDurability();
+  renderReviews();
+  document.getElementById('trend-ctx').innerHTML = ctxLabel();
+}
+function setChannel(c, el) {
+  curChannel = c;
+  document.querySelectorAll('.filter-chip.chan').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  renderAll();
+}
+function setProduct(p, el) {
+  curProduct = p;
+  document.querySelectorAll('.filter-chip.prod').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  renderAll();
+}
+function setStar(s, el) {
+  curStar = s;
+  document.querySelectorAll('.filter-chip.star').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  renderReviews();
+}
+
+// ===== 제품별 유튜브 트렌드 (인기 영상 Top 3) =====
+const YT = {
+  '리프팅밴드': [
+    { title:'턱살 리프팅밴드 한 달 실사용 후기 (충격 결과)', ch:'뷰티튜버 민지', views:84, date:'2026-04-12', dur:'12:34', emoji:'💆‍♀️', color:'#FFE3E6' },
+    { title:'리프팅밴드 효과 있을까? 피부과 의사가 검증', ch:'닥터제이TV', views:52, date:'2026-03-02', dur:'09:21', emoji:'🩺', color:'#EAF1FB' },
+    { title:'자기 전 5분 턱선 리프팅 루틴 (밴드 추천)', ch:'홈케어룸', views:31, date:'2026-05-08', dur:'07:45', emoji:'🌙', color:'#FBF3DC' },
+  ],
+  '석고팩': [
+    { title:'석고팩으로 붓기 빼는 법 (ASMR)', ch:'셀프홈케어', views:47, date:'2026-04-20', dur:'15:02', emoji:'🧖‍♀️', color:'#F0FDF4' },
+    { title:'모델리스트가 알려주는 석고팩 꿀팁', ch:'뷰티랩', views:29, date:'2026-03-18', dur:'10:11', emoji:'💎', color:'#EAF1FB' },
+    { title:'석고팩 vs 모델링팩 솔직 비교', ch:'코덕TV', views:18, date:'2026-05-01', dur:'08:33', emoji:'⚖️', color:'#FFF7E6' },
+  ],
+  '마스크팩': [
+    { title:'PDRN 마스크팩 일주일 챌린지', ch:'피부일기', views:63, date:'2026-04-05', dur:'11:48', emoji:'✨', color:'#FCEDF2' },
+    { title:'수분 폭탄 마스크팩 추천 TOP5', ch:'뷰티위클리', views:41, date:'2026-03-25', dur:'13:20', emoji:'💧', color:'#EAF1FB' },
+    { title:'마스크팩 매일 하면 생기는 일', ch:'닥터스킨', views:27, date:'2026-05-12', dur:'09:55', emoji:'🧴', color:'#F0FDF4' },
+  ],
+  '괄사': [
+    { title:'괄사 마사지로 얼굴 작아지는 법', ch:'홈케어룸', views:58, date:'2026-04-15', dur:'14:07', emoji:'🪨', color:'#FBF3DC' },
+    { title:'괄사 제대로 하는 법 (림프 순환)', ch:'요가소영', views:33, date:'2026-03-09', dur:'12:50', emoji:'💆', color:'#FCEDF2' },
+    { title:'페이스 괄사 한 달 변화 후기', ch:'데일리뷰티', views:21, date:'2026-05-06', dur:'08:14', emoji:'😌', color:'#EAF1FB' },
+  ],
+  '올리리라밴드': [
+    { title:'EMS 리프팅밴드 진짜 효과? 올리리라밴드 리뷰', ch:'가전뷰티', views:39, date:'2026-04-22', dur:'10:42', emoji:'🎗️', color:'#EAF1FB' },
+    { title:'올리리라밴드 한 달 사용 솔직후기', ch:'미코의일상', views:24, date:'2026-03-30', dur:'11:09', emoji:'⚡', color:'#FFF7E6' },
+    { title:'전기 리프팅 디바이스 비교 (올리리라밴드 포함)', ch:'디바이스랩', views:16, date:'2026-05-10', dur:'15:31', emoji:'🔌', color:'#F0FDF4' },
+  ],
+};
+// 영상 속 자주 언급 키워드 Top 5 (대표 키워드 제외) — [키워드, 언급수]
+const YT_KW = {
+  '리프팅밴드': [['턱선 변화',38],['고정력',31],['비포애프터',27],['붓기 감소',22],['내구성',18]],
+  '석고팩':     [['붓기',34],['쿨링감',28],['홈케어 루틴',24],['진정',19],['모델링',15]],
+  '마스크팩':   [['수분',41],['진정',33],['데일리',26],['흡수력',21],['성분',17]],
+  '괄사':       [['림프 순환',36],['소안 효과',30],['마사지법',25],['턱라인',20],['지속력',16]],
+  '올리리라밴드':   [['EMS',35],['온열',29],['충전',23],['윤곽',19],['디바이스 비교',14]],
+};
+let curYt = '리프팅밴드';
+function renderYt() {
+  const kws = YT_KW[curYt] || [];
+  document.getElementById('yt-kw-summary').innerHTML =
+    '<span class="yt-kw-lab">🔑 영상 속 자주 언급 키워드 <span style="color:#999;font-weight:600;">(대표 키워드 제외)</span></span>'
+    + kws.map((k, i) => `<span class="yt-kw-pill"><span class="yt-kw-rank">${i + 1}</span>${k[0]}<span class="yt-kw-cnt">${k[1]}</span></span>`).join('');
+  document.getElementById('yt-grid').innerHTML = YT[curYt].map((v, i) => `
+    <div class="yt-card">
+      <div class="yt-thumb" style="background:${v.color};">
+        <span class="yt-thumb-emoji">${v.emoji}</span>
+        <span class="yt-rank">${i + 1}</span>
+        <span class="yt-play">▶</span>
+        <span class="yt-dur">${v.dur}</span>
+      </div>
+      <div class="yt-body">
+        <div class="yt-title">${v.title}</div>
+        <div class="yt-meta">${v.ch}</div>
+        <div class="yt-meta"><span class="yt-views">조회수 ${v.views}만회</span> · ${v.date}</div>
+      </div>
+    </div>`).join('');
+}
+function setYt(k, el) {
+  curYt = k;
+  document.querySelectorAll('.filter-chip.ytkw').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  renderYt();
+}
+
+// ===== 최근 리뷰 트렌드 및 소구점 제안 =====
+const SOGU = [
+  { theme:'고정력·밀착',    mo:'+38%', quote:'마스크 위에도 안 흘러내리고 하루 종일 고정돼요', point:'"종일 고정·흘러내림 없는 밀착" — 활동성 소구' },
+  { theme:'아침 붓기 케어', mo:'+27%', quote:'아침 5분만 해도 얼굴 붓기가 확 빠져요',       point:'"아침 5분 붓기 리셋" — 모닝 루틴 소구' },
+  { theme:'휴대·간편',      mo:'+21%', quote:'가방에 쏙 들어가서 출장에도 챙겨가요',         point:'"어디서나 5분 홈케어" — 휴대·간편성 소구' },
+  { theme:'PDRN 성분 신뢰', mo:'+18%', quote:'PDRN 성분이라 그런지 탄력이 확실히 다르네요', point:'"PDRN 탄력 성분" — 성분 신뢰 소구' },
+  { theme:'선물·패키지',    mo:'+14%', quote:'패키지가 고급스러워 선물용으로 딱이에요',     point:'"고급 패키지·기프트" — 선물 수요 소구 (골기)' },
+];
+document.getElementById('sogu-list').innerHTML = SOGU.map(s => `
+  <div class="sogu-item">
+    <div class="sogu-head"><div class="sogu-theme">${s.theme}</div><span class="sogu-mo">▲ ${s.mo} · 최근 2주</span></div>
+    <div class="sogu-quote">"${s.quote}"</div>
+    <div class="sogu-point">🎯 ${s.point}</div>
+  </div>`).join('');
+
+// ===== 초기 렌더 =====
+renderAll();
+renderCompNeg();
+renderYt();
+</script>
+
+</body>
+</html>

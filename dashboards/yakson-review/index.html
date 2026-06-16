@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>약손명가헬스케어 · 제품 분석</title>
+<link rel="stylesheet" href="../_assets/dashboard.css">
+<style>
+  /* ===== 교차구매 추천 라인업 (크로스셀 지수 랭킹) ===== */
+  .xrank { display:flex; flex-direction:column; gap:10px; }
+  .xrank-row { position:relative; display:flex; align-items:center; gap:16px; background:#FFF; border:1px solid #EEE; border-radius:12px; padding:15px 18px; transition:transform .18s, box-shadow .18s, border-color .18s; }
+  .xrank-row:hover { border-color:#D8404D; box-shadow:0 6px 18px rgba(0,0,0,.06); transform:translateY(-2px); z-index:30; }
+  .xrank-row.top { border-color:#F3C6CB; background:linear-gradient(180deg,#FFF7F8,#FFF); }
+  .xrank-no { width:28px; height:28px; flex:none; border-radius:50%; background:#ECECEC; color:#6B6B6B; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .xrank-row.top .xrank-no { background:#D8404D; color:#FFF; }
+  .xrank-body { flex:1; min-width:0; }
+  .xrank-combo { font-size:13.5px; font-weight:800; color:#1A1A1A; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .xrank-combo .xplus { color:#C4C4C4; font-weight:700; margin:0 3px; }
+  .xdot { width:8px; height:8px; border-radius:50%; display:inline-block; flex:none; }
+  /* 호버 시 근거(유입·구매 볼륨 + 최근 구매 추이) 팝오버 — 아래 박스를 덮고 표시 */
+  .xrank-evi { position:absolute; left:58px; top:calc(100% - 4px); z-index:40; background:#1A1A1A; color:#EDEDED;
+    border-radius:12px; padding:13px 16px; box-shadow:0 14px 34px rgba(0,0,0,.26); opacity:0; transform:translateY(-5px);
+    pointer-events:none; transition:opacity .18s ease, transform .18s ease; }
+  /* 마지막 2개 행은 위로 펼쳐 잘림 방지 */
+  .xrank-row:nth-last-child(-n+2) .xrank-evi { top:auto; bottom:calc(100% - 4px); transform:translateY(5px); }
+  .evi-row { font-size:11.5px; font-weight:600; white-space:nowrap; margin-bottom:11px; }
+  .evi-row b { color:#FFD93D; font-weight:800; }
+  .evi-row .sep { color:#5A5A5A; margin:0 8px; }
+  .evi-trend-top { display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:6px; }
+  .evi-trend-lab { font-size:10px; color:#B0B0B0; font-weight:600; }
+  .evi-up { font-size:10.5px; font-weight:800; color:#34D399; }
+  .evi-spark { display:block; }
+  .xrank-row:hover .xrank-evi { opacity:1; transform:translateY(0); }
+  .xrank-score { display:flex; align-items:center; gap:11px; flex:none; width:170px; }
+  .xrank-bar { flex:1; height:7px; background:#F0F0F0; border-radius:4px; overflow:hidden; }
+  .xrank-bar > i { display:block; height:100%; background:linear-gradient(90deg,#F5A0A8,#D8404D); border-radius:4px; }
+  .xrank-idx { font-size:15px; font-weight:800; color:#D8404D; width:30px; text-align:right; }
+
+  /* ===== 브랜드 섹션 ===== */
+  .brand-section { margin-bottom: 28px; }
+
+  /* ===== 제품 썸네일 (홈페이지 실제 제품 이미지) ===== */
+  .sku-thumb { width:36px; height:36px; border-radius:8px; object-fit:cover; vertical-align:middle; margin-right:11px; border:1px solid #EEE; background:#F7F7F7; }
+  .xthumb { width:28px; height:28px; border-radius:7px; object-fit:cover; border:1px solid #EEE; background:#F7F7F7; flex:none; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">제품 분석 · 브랜드 &amp; SKU 성과</div>
+        <div class="page-sub">3브랜드 · SKU별 매출·ROAS·재구매율 · 크로스셀 지수</div>
+      </div>
+      <div class="page-meta">
+        <span class="goal">🎯 재구매 구조 전환</span>
+        <span class="live">⦿ LIVE</span>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:2px;">
+      핵심 인사이트 · 마케팅 시사점
+      <span class="section-title-sub">제품·SKU에서 봐야 할 핵심 4가지</span>
+    </div>
+    <div class="headline-grid">
+      <div class="headline-card crit"><div class="headline-icon">🔴</div><div class="headline-text"><b>리프팅밴드 재구매율 1.79%</b> — 반영구 특성상 재구매 루프 취약. 소모성 패치·마스크팩 교차구매가 LTV 핵심 레버</div></div>
+      <div class="headline-card good"><div class="headline-icon">🟢</div><div class="headline-text"><b>약손명가 매출 +273%</b>(2023 15억→2024 56억) 고성장 — 카테고리 리더십을 후속 제품 확장으로 전환할 시점</div></div>
+      <div class="headline-card warn"><div class="headline-icon">🟡</div><div class="headline-text"><b>올리리라·골기 신규 진입</b> — 약손명가 트래픽을 교차 유입시켜 포트폴리오 매출 분산 필요</div></div>
+      <div class="headline-card info"><div class="headline-icon">📦</div><div class="headline-text"><b>교차구매 1순위 = 리프팅패치·마스크팩</b> (동일 고민·맥락·소모성 기준)</div></div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <span class="filter-chip brand active" onclick="setFilter(this,'all')">전체 브랜드</span>
+      <span class="filter-chip brand" style="--dot:#D8404D" onclick="setFilter(this,'yakson')">약손명가</span>
+      <span class="filter-chip brand" onclick="setFilter(this,'ollira')">올리리라</span>
+      <span class="filter-chip brand" onclick="setFilter(this,'golgi')">골기</span>
+    </div>
+
+    <!-- KPI GRID -->
+    <div class="kpi-grid cols-4" id="kpi-grid"></div>
+
+    <!-- 교차구매 추천 라인업 (크로스셀 지수 랭킹 Top 5) -->
+    <div class="brand-section">
+      <div class="section-title">
+        교차구매 추천 라인업
+        <span class="section-title-sub">전체 등록 제품 조합 · 크로스셀 지수 상위 5</span>
+      </div>
+      <div id="cross-sell-grid"></div>
+    </div>
+
+    <!-- SKU 성과 테이블 -->
+    <div class="table-card brand-section">
+      <div class="section-title">
+        브랜드·SKU별 성과
+        <span class="section-title-sub">매출·ROAS·재구매율</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th class="right">매출</th>
+            <th class="right">ROAS</th>
+            <th class="right">재구매율</th>
+            <th class="right">첫구매 비중</th>
+          </tr>
+        </thead>
+        <tbody id="sku-table"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script src="../_assets/sidebar.js"></script>
+<script>
+// ============================================================
+// 브랜드별 제품 분석 데이터 (전체 = 합계, 브랜드별 상이)
+// 정확도: 더미(데모) — 브랜드별 자연스러운 차등값
+// ============================================================
+
+// ----- SKU 마스터 (브랜드별) — 홈페이지 실제 제품명 기준 -----
+const SKU_DATA = [
+  // 약손명가 — 리프팅밴드 PRO·패치·석고 마스크팩·복부패치
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅밴드 PRO', revenue: '7,840만원', roas: 480, repur: '1.79%', firstPct: '98.2%' },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅패치', revenue: '3,210만원', roas: 310, repur: '4.12%', firstPct: '91.4%' },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'gypsum',    sku: '밀크엑소좀 석고 마스크팩', revenue: '2,150만원', roas: 270, repur: '3.50%', firstPct: '93.1%' },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'pdrn',      sku: 'PDRN 콜라겐 석고마스크팩', revenue: '1,420만원', roas: 195, repur: '6.20%', firstPct: '87.3%' },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'yeorihan',  sku: '여리한 패치', revenue: '1,680만원', roas: 220, repur: '5.80%', firstPct: '89.7%' },
+  // 올리리라 — 올리리라밴드
+  { brand: 'ollira', brandLabel: '올리리라', brandColor: '#4A90D9', img: 'olli',      sku: '올리리라밴드', revenue: '4,950만원', roas: 390, repur: '2.31%', firstPct: '95.8%' },
+  // 골기 — 페이스 스톤·바디 스톤
+  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'facestone', sku: '골기 페이스 스톤', revenue: '1,830만원', roas: 240, repur: '3.90%', firstPct: '92.5%' },
+  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'bodystone', sku: '골기 바디 스톤', revenue: '980만원', roas: 175, repur: '4.60%', firstPct: '90.2%' },
+];
+
+// ----- 브랜드별 KPI 데이터 -----
+// kpi 카드: [등록 SKU, 누적 판매, 매출, 재구매율]
+// 매출 = SKU 매출 합산(억) · 등록 SKU 전체 = 5+1+2 = 8 · 평균 재구매율 = 건수 가중평균
+// kpi-actual은 광고성과와 동일한 양식의 kpi-delta(전월 대비 증감)로 표기
+const BRAND_VIEW = {
+  all: {
+    label: '전체 브랜드',
+    kpi: [
+      { label: '등록 SKU', value: '8', unit: '종', delta: '전월 대비 +1종', up: true },
+      { label: '전체 누적 판매', value: '68', unit: '만개', featured: true, delta: '전월 대비 +4.2%', up: true },
+      { label: '매출', value: '2.40', unit: '억원', featured: true, delta: '전월 대비 +6.8%', up: true },
+      { label: '평균 재구매율', value: '2.20', unit: '%', delta: '전월 대비 +0.3%p', up: true },
+    ],
+  },
+  yakson: {
+    label: '약손명가',
+    kpi: [
+      { label: '등록 SKU', value: '5', unit: '종', delta: '전월 대비 +1종', up: true },
+      { label: '리프팅밴드 PRO 누적 판매', value: '50', unit: '만개', featured: true, delta: '전월 대비 +3.6%', up: true },
+      { label: '매출', value: '1.63', unit: '억원', featured: true, delta: '전월 대비 +7.1%', up: true },
+      { label: '재구매율 (베이스라인)', value: '1.79', unit: '%', delta: '전월 대비 +0.2%p', up: true },
+    ],
+  },
+  ollira: {
+    label: '올리리라',
+    kpi: [
+      { label: '등록 SKU', value: '1', unit: '종', delta: '전월 대비 +1종', up: true },
+      { label: '올리리라밴드 누적 판매', value: '12', unit: '만개', featured: true, delta: '전월 대비 +5.5%', up: true },
+      { label: '매출', value: '0.50', unit: '억원', featured: true, delta: '전월 대비 +9.4%', up: true },
+      { label: '재구매율 (베이스라인)', value: '2.31', unit: '%', delta: '전월 대비 +0.4%p', up: true },
+    ],
+  },
+  golgi: {
+    label: '골기',
+    kpi: [
+      { label: '등록 SKU', value: '2', unit: '종', delta: '전월 대비 +1종', up: true },
+      { label: '골기 페이스 스톤 누적 판매', value: '6', unit: '만개', featured: true, delta: '전월 대비 +6.1%', up: true },
+      { label: '매출', value: '0.28', unit: '억원', featured: true, delta: '전월 대비 +8.0%', up: true },
+      { label: '재구매율 (베이스라인)', value: '3.90', unit: '%', delta: '전월 대비 +0.5%p', up: true },
+    ],
+  },
+};
+
+let curBrand = 'all';
+
+// ===== 칩 클릭 핸들러: active 토글 + 전체 위젯 재렌더 =====
+function setFilter(el, brand) {
+  document.querySelectorAll('.filter-chip.brand').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  curBrand = brand;
+  render(brand);
+}
+
+// ===== KPI 그리드 =====
+function renderKPI(brand) {
+  const v = BRAND_VIEW[brand];
+  document.getElementById('kpi-grid').innerHTML = v.kpi.map(k => {
+    const tail = k.delta != null
+      ? `<div class="kpi-delta ${k.up ? 'up' : 'down'}">${k.delta}</div>`
+      : `<div class="kpi-actual">${k.sub}</div>`;
+    return `<div class="kpi-card${k.featured ? ' featured' : ''}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}<span class="kpi-unit">${k.unit}</span></div>
+      ${tail}
+    </div>`;
+  }).join('');
+}
+
+// ===== SKU 성과 테이블 (브랜드 선택 시 해당 행만) =====
+function roasPill(roas) {
+  if (roas >= 350) return `<span class="roas-pill high">${roas}%</span>`;
+  if (roas >= 220) return `<span class="roas-pill mid">${roas}%</span>`;
+  return `<span class="roas-pill low">${roas}%</span>`;
+}
+function renderTable(brand) {
+  const filtered = brand === 'all' ? SKU_DATA : SKU_DATA.filter(r => r.brand === brand);
+  let html = '', lastBrand = null;
+  filtered.forEach(r => {
+    if (r.brandLabel !== lastBrand) {
+      html += `<tr class="grp-row">
+        <td colspan="5">
+          <span class="mix-dot" style="background:${r.brandColor};display:inline-block;margin-right:7px;"></span>
+          ${r.brandLabel}
+        </td>
+      </tr>`;
+      lastBrand = r.brandLabel;
+    }
+    html += `<tr>
+      <td style="font-weight:600;color:#1A1A1A;"><img class="sku-thumb" src="../_assets/products/${r.img}.jpg" alt="${r.sku}" loading="lazy">${r.sku}</td>
+      <td class="right">${r.revenue}</td>
+      <td class="right">${roasPill(r.roas)}</td>
+      <td class="right" style="font-weight:700;color:#1A1A1A;">${r.repur}</td>
+      <td class="right" style="color:#6B6B6B;">${r.firstPct}</td>
+    </tr>`;
+  });
+  document.getElementById('sku-table').innerHTML = html;
+}
+
+// ===== 크로스셀 지수 랭킹 =====
+// 등록 8개 제품을 2개씩 결합(C(8,2)=28쌍)하고, 크로스셀 가능성을 점수화 → 내림차순 Top 5
+// 점수 = ①디바이스+소모재 보완(28) ②동일 고민 중첩(최대 26) ③동일 루틴 맥락(16)
+//        ④재구매 루프 강도(소모재 재구매율×3) ⑤크로스 브랜드 포트폴리오 브리지(10)
+const XSKU = [
+  { name:'리프팅밴드 PRO',             img:'band',      brand:'yakson', color:'#D8404D', type:'device',     concerns:['탄력','윤곽'],        routine:'face',  repur:1.79, orders:4200 },
+  { name:'리프팅패치',                 img:'band',      brand:'yakson', color:'#D8404D', type:'consumable', concerns:['탄력','윤곽','PDRN'], routine:'face',  repur:4.12, orders:1800 },
+  { name:'밀크엑소좀 석고 마스크팩',    img:'gypsum',    brand:'yakson', color:'#D8404D', type:'consumable', concerns:['붓기','진정'],        routine:'night', repur:3.50, orders:1150 },
+  { name:'여리한 패치',                img:'yeorihan',  brand:'yakson', color:'#D8404D', type:'consumable', concerns:['복부','탄력'],        routine:'body',  repur:5.80, orders:980 },
+  { name:'PDRN 콜라겐 석고마스크팩',    img:'pdrn',      brand:'yakson', color:'#D8404D', type:'consumable', concerns:['탄력','PDRN'],        routine:'face',  repur:6.20, orders:760 },
+  { name:'올리리라밴드',               img:'olli',      brand:'ollira', color:'#4A90D9', type:'device',     concerns:['탄력','윤곽'],        routine:'face',  repur:2.31, orders:2600 },
+  { name:'골기 페이스 스톤',            img:'facestone', brand:'golgi',  color:'#C9A227', type:'device',     concerns:['붓기','림프'],        routine:'face',  repur:3.90, orders:1080 },
+  { name:'골기 바디 스톤',             img:'bodystone', brand:'golgi',  color:'#C9A227', type:'device',     concerns:['바디','순환'],        routine:'body',  repur:4.60, orders:540 },
+];
+function xinter(a, b) { return a.concerns.filter(c => b.concerns.includes(c)); }
+function xscore(a, b) {
+  const complement = a.type !== b.type ? 28 : 0;
+  const inter = xinter(a, b).length;
+  const union = new Set([...a.concerns, ...b.concerns]).size;
+  const concern = union ? (inter / union) * 26 : 0;
+  const routine = a.routine === b.routine ? 16 : 0;
+  const loop = Math.max(a.repur, b.repur) * 3;
+  const bridge = a.brand !== b.brand ? 10 : 0;
+  return complement + concern + routine + loop + bridge;
+}
+function buildPairs() {
+  const pairs = [];
+  for (let i = 0; i < XSKU.length; i++)
+    for (let j = i + 1; j < XSKU.length; j++)
+      pairs.push({ a: XSKU[i], b: XSKU[j], score: xscore(XSKU[i], XSKU[j]) });
+  pairs.sort((x, y) => y.score - x.score);
+  return pairs;
+}
+// ===== 교차구매 추천 라인업 (전체 제품 조합 Top 5) =====
+// 근거(유입·구매 볼륨)는 텍스트로 노출하지 않고, 행 호버 시 팝오버로 연출
+function renderCross() {
+  const top = buildPairs().slice(0, 5);
+  document.getElementById('cross-sell-grid').innerHTML = '<div class="xrank">' + top.map((p, i) => {
+    // 디바이스(앵커 제품)를 앞에 배치
+    const first = p.a.type === 'device' ? p.a : (p.b.type === 'device' ? p.b : p.a);
+    const second = first === p.a ? p.b : p.a;
+    const idx = Math.round(p.score);
+    // 근거 — 유입/구매 볼륨 (점수·주문량 기반 결정값)
+    const attach = (p.score * 0.22).toFixed(1);                                        // 교차 유입률 %
+    const coBuy  = Math.round(Math.min(p.a.orders, p.b.orders) * p.score / 100 * 0.6); // 90일 동시구매 건
+    const coView = Math.round(p.score * 0.4);                                          // 함께 조회 %
+    // 최근 8주 동시구매 추이 (주간) — 결정적 상승 패턴
+    const wAvg = coBuy / 13;
+    const endBoost = [1.07, 1.12, 1.04, 1.14, 1.03][i] || 1.07;
+    const wk = [0.80, 0.84, 0.82, 0.89, 0.91, 0.97, 1.01, endBoost];
+    const arr = wk.map(m => Math.max(1, Math.round(wAvg * m)));
+    const delta = Math.round((arr[7] / arr[0] - 1) * 100);
+    const mn = Math.min.apply(null, arr), mxv = Math.max.apply(null, arr), n8 = arr.length;
+    const sW = 248, sH = 34, sPad = 5;
+    const xx = k => n8 === 1 ? 0 : k / (n8 - 1) * sW;
+    const yy = v => mxv === mn ? sH / 2 : sPad + (sH - 2 * sPad) * (1 - (v - mn) / (mxv - mn));
+    let sLine = '', sArea = `M 0 ${sH}`;
+    arr.forEach((v, k) => { const x = xx(k).toFixed(1), y = yy(v).toFixed(1); sLine += (k ? ' L ' : 'M ') + x + ' ' + y; sArea += ' L ' + x + ' ' + y; });
+    sArea += ` L ${sW} ${sH} Z`;
+    const sDots = arr.map((v, k) => `<circle cx="${xx(k).toFixed(1)}" cy="${yy(v).toFixed(1)}" r="${k === n8 - 1 ? 2.8 : 1.7}" fill="${k === n8 - 1 ? '#FFD93D' : '#F5A0A8'}"/>`).join('');
+    const sSvg = `<svg class="evi-spark" viewBox="0 0 ${sW} ${sH}" width="${sW}" height="${sH}"><path d="${sArea}" fill="rgba(245,160,168,0.16)"/><path d="${sLine}" fill="none" stroke="#F5A0A8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${sDots}</svg>`;
+    return `<div class="xrank-row${i === 0 ? ' top' : ''}">
+      <div class="xrank-no">${i + 1}</div>
+      <div class="xrank-body">
+        <div class="xrank-combo">
+          <img class="xthumb" src="../_assets/products/${first.img}.jpg" alt="${first.name}" loading="lazy">${first.name}
+          <span class="xplus">×</span>
+          <img class="xthumb" src="../_assets/products/${second.img}.jpg" alt="${second.name}" loading="lazy">${second.name}
+        </div>
+      </div>
+      <div class="xrank-score">
+        <div class="xrank-bar"><i style="width:${Math.min(idx, 100)}%;"></i></div>
+        <div class="xrank-idx">${idx}</div>
+      </div>
+      <div class="xrank-evi">
+        <div class="evi-row">🔁 교차 유입률 <b>${attach}%</b><span class="sep">·</span>🛒 90일 동시구매 <b>${coBuy.toLocaleString()}건</b><span class="sep">·</span>👀 함께 조회 <b>${coView}%</b></div>
+        <div class="evi-trend-top"><span class="evi-trend-lab">📈 최근 8주 동시구매 추이</span><span class="evi-up">▲ +${delta}%</span></div>
+        ${sSvg}
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// ===== 오케스트레이터 =====
+function render(brand) {
+  renderKPI(brand);
+  renderTable(brand);
+  renderCross();
+}
+
+// 초기 렌더
+render('all');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>약손명가헬스케어 · 광고 성과</title>
+<link rel="stylesheet" href="../_assets/dashboard.css">
+<style>
+  /* 채널 포트폴리오 — 분류 차원 스위처 + 카테고리 셀렉터 */
+  .mix-dim-bar { display:flex; align-items:center; gap:7px; margin-bottom:11px; }
+  .mix-dim-label { font-size:11px; color:#999; font-weight:700; margin-right:3px; }
+  .mix-dim { padding:5px 14px; border:1px solid #E5E5E5; border-radius:14px; font-size:11.5px; font-weight:700; color:#6B6B6B; cursor:pointer; transition:all .15s; }
+  .mix-dim:hover { border-color:#D8404D; color:#D8404D; }
+  .mix-dim.on { background:#D8404D; border-color:#D8404D; color:#FFFFFF; }
+  .mix-sel-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .mix-sel { padding:8px 16px; background:#FFFFFF; border:1px solid #E5E5E5; border-radius:20px; font-size:12.5px; color:#4A4A4A; cursor:pointer; font-weight:700; transition:all .15s; display:flex; align-items:center; gap:7px; }
+  .mix-sel:hover { border-color:#D8404D; }
+  .mix-sel.on { background:#1A1A1A; border-color:#1A1A1A; color:#FFFFFF; }
+  .mix-sel .ms-dot { width:9px; height:9px; border-radius:50%; }
+  .tag-etc { font-size:9px; font-weight:700; color:#6B6B6B; background:#F0F0F0; padding:1px 6px; border-radius:4px; }
+  .mix-seg-legend { display:flex; gap:16px; flex-wrap:wrap; margin-top:9px; font-size:11px; color:#6B6B6B; font-weight:600; }
+  .mix-seg-legend .dot { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+
+  /* 데일리 리포트 업로드 + AI 분석 코멘트 */
+  .dropzone { border:2px dashed #D8D8D8; border-radius:14px; padding:28px 18px; text-align:center; cursor:pointer; transition:border-color .18s, background .18s; background:#FCFCFC; }
+  .dropzone:hover, .dropzone.drag { border-color:#D8404D; background:#FFF7F8; }
+  .dz-icon { font-size:30px; margin-bottom:8px; }
+  .dz-text { font-size:13px; color:#1A1A1A; font-weight:600; }
+  .dz-text b { color:#D8404D; }
+  .dz-sub { font-size:11px; color:#999; margin-top:5px; font-weight:600; }
+  .dz-status { margin-top:13px; font-size:11.5px; color:#6B6B6B; font-weight:600; min-height:16px; }
+  .dz-status.done { color:#15803D; }
+  .ai-body { font-size:12.5px; color:#4A4A4A; line-height:1.65; }
+  .ai-empty { color:#9CA3AF; font-weight:600; text-align:center; padding:34px 10px; font-size:12.5px; line-height:1.7; }
+  .ai-typing { color:#D8404D; font-weight:700; }
+  .ai-line { display:flex; gap:9px; padding:8px 0; border-bottom:1px solid #F5F5F5; align-items:flex-start; }
+  .ai-line:last-child { border-bottom:none; }
+  .ai-ic { flex:none; font-size:14px; line-height:1.5; }
+  .ai-tx { flex:1; }
+  .ai-tx b { color:#1A1A1A; font-weight:800; }
+  .ai-foot { margin-top:12px; padding-top:10px; border-top:1px solid #F0F0F0; font-size:10.5px; color:#AEAEAE; font-weight:600; }
+
+  /* 채널별 성과 테이블 — 다지표 밀집 */
+  .metric-table th, .metric-table td { font-size:11px; padding:9px 7px; white-space:nowrap; }
+  .metric-table th:first-child, .metric-table td:first-child { padding-left:14px; }
+  .metric-table th:last-child, .metric-table td:last-child { padding-right:14px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">광고 성과</div>
+        <div class="page-sub">약손명가헬스케어 3브랜드 · 네이버 브랜드스토어 70% 중심</div>
+      </div>
+      <div class="page-meta">
+        <span class="goal">🎯 연간 목표 ROAS 500%</span>
+        <span class="live">⦿ LIVE</span>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-chip brand active">전체 브랜드</div>
+      <div class="filter-chip brand">약손명가</div>
+      <div class="filter-chip brand">올리리라</div>
+      <div class="filter-chip brand">골기</div>
+      <div class="filter-div"></div>
+      <div class="filter-chip period active">연간</div>
+      <div class="filter-chip period">이번 달</div>
+      <div class="filter-chip period">최근 7일</div>
+      <div class="filter-chip" style="margin-left:auto;border-color:#D8404D;color:#D8404D;">⤓ CSV 다운로드</div>
+    </div>
+
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <div class="two-col" style="grid-template-columns:2.3fr 1fr;align-items:stretch;margin-bottom:28px;">
+      <div class="chart-card" style="position:relative;margin-bottom:0;">
+        <div class="section-title">
+          매출 · ROAS 추이
+          <span class="section-title-sub">매출(영역) + ROAS(라인) · 그래프에 마우스를 올리면 상세</span>
+        </div>
+        <svg id="trend-svg" viewBox="0 0 760 340" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;"></svg>
+        <div class="chart-tip" id="trend-tip"></div>
+        <div style="display:flex;gap:22px;align-items:center;justify-content:center;padding-top:14px;margin-top:6px;border-top:1px solid #F5F5F5;font-size:11.5px;color:#6B6B6B;font-weight:600;">
+          <span><span style="display:inline-block;width:12px;height:12px;background:#D8404D;border-radius:2px;margin-right:5px;vertical-align:middle;"></span>매출</span>
+          <span><span style="display:inline-block;width:14px;height:3px;background:#4A90D9;border-radius:2px;margin-right:5px;vertical-align:middle;"></span>ROAS</span>
+        </div>
+      </div>
+
+      <div class="chart-card" id="split-card" style="margin-bottom:0;display:flex;flex-direction:column;">
+        <div class="section-title">
+          첫구매 · 재구매 매출
+          <span class="section-title-sub">선택 기간·브랜드 매출 구성</span>
+        </div>
+        <div class="brand-donut" style="flex:1;flex-direction:column;align-items:center;gap:18px;justify-content:center;">
+          <div class="donut-wrap" style="width:152px;height:152px;">
+            <svg viewBox="0 0 130 130" width="152" height="152" style="display:block;">
+              <circle cx="65" cy="65" r="52" fill="none" stroke="#F0F0F0" stroke-width="18"/>
+              <circle id="sp-first" cx="65" cy="65" r="52" fill="none" stroke="#D8404D" stroke-width="18"
+                stroke-dasharray="0 326.7" stroke-dashoffset="0" transform="rotate(-90 65 65)"
+                style="transition:stroke-dasharray .55s ease;"/>
+              <circle id="sp-repur" cx="65" cy="65" r="52" fill="none" stroke="#4A90D9" stroke-width="18"
+                stroke-dasharray="0 326.7" stroke-dashoffset="0" transform="rotate(-90 65 65)"
+                style="transition:stroke-dasharray .55s ease, stroke-dashoffset .55s ease;"/>
+            </svg>
+            <div class="donut-center">
+              <div class="donut-center-value" id="sp-center">124억</div>
+              <div class="donut-center-label">총 매출</div>
+            </div>
+          </div>
+          <div class="donut-legend" id="sp-legend" style="width:100%;flex:none;"></div>
+        </div>
+        <div id="sp-callout" style="margin-top:14px;padding-top:14px;border-top:1px solid #F5F5F5;"></div>
+      </div>
+    </div>
+
+    <!-- 데일리 리포트 업로드 + AI 비교 분석 -->
+    <div class="two-col" style="grid-template-columns:1fr 1.55fr;align-items:stretch;margin-bottom:28px;">
+      <div class="chart-card" style="margin-bottom:0;display:flex;flex-direction:column;">
+        <div class="section-title">데일리 리포트 업로드<span class="section-title-sub">엑셀·CSV 일일 성과 리포트</span></div>
+        <div id="dropzone" class="dropzone" style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+          <div class="dz-icon">📄</div>
+          <div class="dz-text"><b>리포트를 끌어다 놓거나 클릭</b>해 업로드</div>
+          <div class="dz-sub">.xlsx · .xls · .csv</div>
+          <input type="file" id="report-file" accept=".xlsx,.xls,.csv" hidden>
+        </div>
+        <div id="dz-status" class="dz-status"></div>
+      </div>
+      <div class="chart-card" id="ai-card" style="margin-bottom:0;">
+        <div class="section-title">AI 분석 코멘트<span class="section-title-sub">업로드 리포트 기반 · 전일 대비 자동 코멘트</span></div>
+        <div id="ai-body" class="ai-body"></div>
+      </div>
+    </div>
+
+    <div class="section-title">채널 포트폴리오</div>
+    <div class="mix-dim-bar">
+      <div class="mix-dim on" data-dim="all">전체</div>
+      <div class="mix-dim" data-dim="channel">채널</div>
+      <div class="mix-dim" data-dim="type">광고 유형</div>
+      <div class="mix-dim" data-dim="brand">브랜드</div>
+    </div>
+    <div class="mix-sel-bar" id="mix-sel-bar"></div>
+    <div class="mix-grid" id="mix-summary" style="margin-bottom:14px;"></div>
+
+    <div class="table-card">
+      <div class="section-title">채널별 성과</div>
+      <table class="metric-table">
+        <thead>
+          <tr>
+            <th>매체</th>
+            <th class="right">소진</th>
+            <th class="right">노출</th>
+            <th class="right">클릭</th>
+            <th class="right">CTR</th>
+            <th class="right">CPC</th>
+            <th class="right">구매</th>
+            <th class="right">CVR</th>
+            <th class="right">매출</th>
+            <th class="right">ROAS</th>
+          </tr>
+        </thead>
+        <tbody id="mix-table"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script src="../_assets/sidebar.js"></script>
+<script>
+// ============================================================
+// 브랜드 × 기간 필터 → KPI + 추이 차트
+// ============================================================
+const BRANDS = {
+  '전체':    { share:1.00, roas:528, aov:60996, cvr:1.20 },
+  '약손명가': { share:0.48, roas:545, aov:64500, cvr:1.32 },
+  '올리리라': { share:0.34, roas:522, aov:71200, cvr:0.95 },
+  '골기':    { share:0.18, roas:533, aov:88400, cvr:1.05 },
+};
+const PERIODS = {
+  '연간':    { revMul:1.00,   spendMul:1.00,   roasAdd:0,  pts:'month', cum:'연간 누적' },
+  '이번 달':  { revMul:0.085,  spendMul:0.087,  roasAdd:5,  pts:'day30', cum:'이번 달' },
+  '최근 7일': { revMul:0.0194, spendMul:0.0193, roasAdd:10, pts:'day7',  cum:'최근 7일' },
+};
+const REV_ANNUAL = 124, SPEND_ANNUAL = 30;
+
+const DAILY_REV  = [5200,5400,4900,5800,6100,5600,6400,6800,6200,7100,7400,6900,7800,8200,7600,8400,8100,8900,9200,8700,9600,9100,10200,9800,10600,10100,11200,9400,10800,11000];
+const DAILY_ROAS = [502,515,508,522,518,530,525,512,535,528,540,520,545,538,525,550,542,555,548,535,560,552,565,558,570,555,568,540,562,559];
+const MONTH_LBL  = ['7월','8월','9월','10월','11월','12월','1월','2월','3월','4월','5월','6월'];
+const MONTH_REV  = [82000,88000,91000,96000,103000,99000,108000,112000,107000,118000,122000,114000];
+const MONTH_ROAS = [505,515,520,528,522,530,535,540,532,545,550,538];
+
+let curBrand = '전체', curPeriod = '연간';
+const eok = (man, d) => (man / 10000).toFixed(d == null ? (man < 100000 ? 1 : 0) : d);
+
+// kpi-delta 비교 기준: 기간 버튼에 따라 전년/전월/전주 대비로 표시
+const PERIOD_CMP = { '연간': '전년 대비', '이번 달': '전월 대비', '최근 7일': '전주 대비' };
+function kpiCard(label, value, unit, delta) {
+  return `<div class="kpi-card">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div>
+    <div class="kpi-delta up">${PERIOD_CMP[curPeriod]} ${delta}</div>
+  </div>`;
+}
+
+function renderKPI() {
+  const b = BRANDS[curBrand], p = PERIODS[curPeriod];
+  const rev = REV_ANNUAL * b.share * p.revMul;
+  const spend = SPEND_ANNUAL * b.share * p.spendMul;
+  const roas = Math.round(b.roas + p.roasAdd);
+  const fmtEok = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
+  document.getElementById('kpi-grid').innerHTML =
+      kpiCard('총 매출', fmtEok(rev), '억원', '+3.2%p')
+    + kpiCard('총 광고비', fmtEok(spend), '억원', '+1.8%p')
+    + kpiCard('평균 ROAS', roas, '%', '+2.1%p')
+    + kpiCard('평균 객단가', b.aov.toLocaleString(), '원', '+0.9%p')
+    + kpiCard('평균 전환율', b.cvr.toFixed(2), '%', '+0.5%p');
+}
+
+// ===== 추이 차트 (필터 반응형) =====
+const TREND = { rev: [], roas: [], lbl: [], revMax: 12000, roasMin: 350, roasMax: 480 };
+const TW = 760, TH = 250, TpadL = 46, TpadR = 46, TpadT = 22, TpadB = 32;
+const Tx0 = TpadL, Tx1 = TW - TpadR, Ty0 = TpadT, Ty1 = TH - TpadB;
+const Txf = i => Tx0 + (Tx1 - Tx0) * i / (TREND.rev.length - 1);
+const TyRev = v => Ty1 - (Ty1 - Ty0) * v / TREND.revMax;
+const TyRoas = v => Ty1 - (Ty1 - Ty0) * (v - TREND.roasMin) / (TREND.roasMax - TREND.roasMin);
+function niceMax(v) { const e = Math.pow(10, Math.floor(Math.log10(v))); return Math.ceil(v / e) * e; }
+
+function buildTrend() {
+  const b = BRANDS[curBrand], p = PERIODS[curPeriod];
+  let rev, roas, lbl;
+  if (p.pts === 'month') {
+    rev = MONTH_REV.map(v => Math.round(v * b.share)); roas = MONTH_ROAS.map(v => v + p.roasAdd); lbl = MONTH_LBL.slice();
+  } else if (p.pts === 'day7') {
+    rev = DAILY_REV.slice(23).map(v => Math.round(v * b.share)); roas = DAILY_ROAS.slice(23).map(v => v + p.roasAdd);
+    lbl = []; for (let d = 24; d <= 30; d++) lbl.push('6/' + d);
+  } else {
+    rev = DAILY_REV.map(v => Math.round(v * b.share)); roas = DAILY_ROAS.map(v => v + p.roasAdd);
+    lbl = []; for (let d = 1; d <= 30; d++) lbl.push('6/' + d);
+  }
+  TREND.rev = rev; TREND.roas = roas; TREND.lbl = lbl;
+  TREND.revMax = niceMax(Math.max.apply(null, rev) * 1.08);
+  const rmin = Math.min.apply(null, roas), rmax = Math.max.apply(null, roas);
+  TREND.roasMin = Math.floor((rmin - 10) / 10) * 10; TREND.roasMax = Math.ceil((rmax + 10) / 10) * 10;
+}
+
+function renderTrend() {
+  buildTrend();
+  const rev = TREND.rev, roas = TREND.roas, lbl = TREND.lbl, n = rev.length;
+  let svg = '<defs><linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0" stop-color="#D8404D" stop-opacity="0.26"/><stop offset="1" stop-color="#D8404D" stop-opacity="0"/></linearGradient></defs>';
+  for (let k = 0; k <= 4; k++) {
+    const t = TREND.revMax * k / 4, y = TyRev(t);
+    svg += `<line x1="${Tx0}" y1="${y}" x2="${Tx1}" y2="${y}" stroke="#F2F2F2" stroke-width="1"/>`;
+    svg += `<text x="${Tx0 - 8}" y="${y + 3}" text-anchor="end" font-size="9" fill="#BBB">${eok(t, 1)}억</text>`;
+  }
+  [TREND.roasMin, Math.round((TREND.roasMin + TREND.roasMax) / 2), TREND.roasMax].forEach(t => {
+    svg += `<text x="${Tx1 + 8}" y="${TyRoas(t) + 3}" text-anchor="start" font-size="9" fill="#9DC0E8">${t}%</text>`;
+  });
+  let area = `M ${Txf(0)},${TyRev(0)}`, line = '';
+  rev.forEach((v, i) => { const x = Txf(i), y = TyRev(v); area += ` L ${x},${y}`; line += (i ? ' L ' : 'M ') + x + ',' + y; });
+  area += ` L ${Txf(n - 1)},${TyRev(0)} Z`;
+  svg += `<path d="${area}" fill="url(#revGrad)"/><path d="${line}" fill="none" stroke="#D8404D" stroke-width="2.4" stroke-linejoin="round"/>`;
+  let rl = ''; roas.forEach((v, i) => { rl += (i ? ' L ' : 'M ') + Txf(i) + ',' + TyRoas(v); });
+  svg += `<path d="${rl}" fill="none" stroke="#4A90D9" stroke-width="2" stroke-linejoin="round" opacity="0.9"/>`;
+  const peak = rev.indexOf(Math.max.apply(null, rev)), step = n > 12 ? 5 : 1;
+  rev.forEach((v, i) => { if (i % step === 0 || i === peak || i === n - 1) svg += `<circle cx="${Txf(i)}" cy="${TyRev(v)}" r="${i === peak ? 4 : 2.6}" fill="#D8404D" stroke="#FFF" stroke-width="1.5"/>`; });
+  const xstep = n > 20 ? 5 : n > 8 ? 2 : 1;
+  lbl.forEach((L, i) => { if (i % xstep === 0 || i === n - 1) svg += `<text x="${Txf(i)}" y="${Ty1 + 18}" text-anchor="middle" font-size="9" fill="#999">${L}</text>`; });
+  svg += `<line id="tg" x1="0" y1="${Ty0}" x2="0" y2="${Ty1}" stroke="#D8404D" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>`;
+  svg += `<circle id="td-rev" r="4.5" fill="#D8404D" stroke="#FFF" stroke-width="2" opacity="0"/><circle id="td-roas" r="3.8" fill="#4A90D9" stroke="#FFF" stroke-width="2" opacity="0"/>`;
+  document.getElementById('trend-svg').innerHTML = svg;
+}
+
+(function () {
+  const svgEl = document.getElementById('trend-svg'), tip = document.getElementById('trend-tip'), card = svgEl.closest('.chart-card');
+  svgEl.addEventListener('mousemove', e => {
+    const n = TREND.rev.length; if (!n) return;
+    const rect = svgEl.getBoundingClientRect(), vx = (e.clientX - rect.left) / rect.width * TW;
+    let i = Math.round((vx - Tx0) / (Tx1 - Tx0) * (n - 1)); i = Math.max(0, Math.min(n - 1, i));
+    const gx = Txf(i), g = svgEl.querySelector('#tg'), dr = svgEl.querySelector('#td-rev'), dq = svgEl.querySelector('#td-roas');
+    g.setAttribute('x1', gx); g.setAttribute('x2', gx); g.setAttribute('opacity', '1');
+    dr.setAttribute('cx', gx); dr.setAttribute('cy', TyRev(TREND.rev[i])); dr.setAttribute('opacity', '1');
+    dq.setAttribute('cx', gx); dq.setAttribute('cy', TyRoas(TREND.roas[i])); dq.setAttribute('opacity', '1');
+    tip.innerHTML = `<b>${TREND.lbl[i]}</b> · <span class="tr">매출 ${eok(TREND.rev[i])}억</span> · <span class="tq">ROAS ${TREND.roas[i]}%</span>`;
+    tip.classList.add('on');
+    const cr = card.getBoundingClientRect(), px = (rect.left - cr.left) + (gx / TW) * rect.width, py = (rect.top - cr.top) + (TyRev(TREND.rev[i]) / TH) * rect.height;
+    tip.style.left = Math.max(6, Math.min(cr.width - tip.offsetWidth - 6, px - tip.offsetWidth / 2)) + 'px';
+    tip.style.top = (py - tip.offsetHeight - 14) + 'px';
+  });
+  svgEl.addEventListener('mouseleave', () => {
+    tip.classList.remove('on');
+    ['#tg', '#td-rev', '#td-roas'].forEach(s => { const el = svgEl.querySelector(s); if (el) el.setAttribute('opacity', '0'); });
+  });
+})();
+
+// ===== 첫구매 · 재구매 매출 도넛 (브랜드·기간 반응형) =====
+const SPLIT = { '전체': [74, 26], '약손명가': [72, 28], '올리리라': [81, 19], '골기': [67, 33] };
+const SP_C = 326.7; // 2*pi*52
+const fmtEokV = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
+function renderSplit() {
+  const b = BRANDS[curBrand], p = PERIODS[curPeriod];
+  const rev = REV_ANNUAL * b.share * p.revMul; // 억
+  const [fp, rp] = SPLIT[curBrand];
+  const firstRev = rev * fp / 100, repurRev = rev * rp / 100;
+  const firstLen = SP_C * fp / 100;
+  document.getElementById('sp-first').setAttribute('stroke-dasharray', `${firstLen.toFixed(1)} ${SP_C}`);
+  const repur = document.getElementById('sp-repur');
+  repur.setAttribute('stroke-dasharray', `${(SP_C * rp / 100).toFixed(1)} ${SP_C}`);
+  repur.setAttribute('stroke-dashoffset', `-${firstLen.toFixed(1)}`);
+  document.getElementById('sp-center').textContent = fmtEokV(rev) + '억';
+  document.getElementById('sp-legend').innerHTML = [
+    { color: '#D8404D', label: '첫구매', amt: firstRev, pct: fp },
+    { color: '#4A90D9', label: '재구매', amt: repurRev, pct: rp },
+  ].map(l => `<div class="legend-item">
+      <span class="legend-dot" style="background:${l.color};"></span>
+      <span class="legend-label">${l.label}</span>
+      <span class="legend-value">${fmtEokV(l.amt)}억 <span style="color:#9A9A9A;font-weight:700;font-size:11px;">${l.pct}%</span></span>
+    </div>`).join('');
+  document.getElementById('sp-callout').innerHTML = `<div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:11px;color:#6B6B6B;font-weight:700;white-space:nowrap;">재구매 매출 비중</span>
+      <div style="flex:1;height:7px;background:#EAF1FB;border-radius:4px;overflow:hidden;"><i style="display:block;height:100%;width:${rp}%;background:#4A90D9;border-radius:4px;"></i></div>
+      <span style="font-size:14px;font-weight:800;color:#4A90D9;">${rp}%</span>
+    </div>`;
+}
+
+document.querySelectorAll('.filter-chip.brand').forEach(chip => chip.addEventListener('click', function () {
+  document.querySelectorAll('.filter-chip.brand').forEach(c => c.classList.remove('active'));
+  this.classList.add('active');
+  curBrand = this.textContent.trim() === '전체 브랜드' ? '전체' : this.textContent.trim();
+  renderKPI(); renderTrend(); renderSplit(); renderAI();
+}));
+document.querySelectorAll('.filter-chip.period').forEach(chip => chip.addEventListener('click', function () {
+  document.querySelectorAll('.filter-chip.period').forEach(c => c.classList.remove('active'));
+  this.classList.add('active');
+  curPeriod = this.textContent.trim();
+  renderKPI(); renderTrend(); renderSplit(); renderAI();
+}));
+
+// ============================================================
+// 채널 포트폴리오 — 3개 분류 차원(채널 / 광고 유형 / 브랜드)
+// ============================================================
+const MEDIA = [
+  { g:'naver', tag:'SA', brand:'골기',    name:'브랜드검색',     bud:8299,  roas:1850 },
+  { g:'naver', tag:'SA', brand:'올리리라', name:'파워링크',       bud:18862, roas:540 },
+  { g:'naver', tag:'SA', brand:'약손명가', name:'쇼핑검색',       bud:53317, roas:525 },
+  { g:'naver', tag:'DA', brand:'약손명가', name:'GFA',           bud:48269, roas:470 },
+  { g:'naver', tag:'DA', brand:'올리리라', name:'ADVoost',       bud:18862, roas:560 },
+  { g:'naver', tag:'DA', brand:'골기',    name:'Live 부스팅',    bud:12575, roas:540 },
+  { g:'naver', tag:'DA', brand:'약손명가', name:'META 협력광고',  bud:30955, roas:545 },
+  { g:'naver', tag:'DA', brand:'올리리라', name:'네이버페이 CPS', bud:7545,  roas:820 },
+  { g:'naver', tag:'DA', brand:'골기',    name:'쿠키오븐 CPS',   bud:7545,  roas:480 },
+  { g:'naver', tag:'DA', brand:'골기',    name:'CRM',           bud:3771,  roas:640 },
+  { g:'coupang', tag:'SA', brand:'약손명가', name:'매출최적화 광고', bud:26000, roas:450 },
+  { g:'coupang', tag:'SA', brand:'올리리라', name:'수동 성과형 광고', bud:49000, roas:440 },
+  { g:'etc', tag:'', brand:'올리리라', name:'에이블리',       bud:1200, roas:1050 },
+  { g:'etc', tag:'', brand:'올리리라', name:'지그재그',       bud:1200, roas:930 },
+  { g:'etc', tag:'DA', brand:'골기',  name:'올리브영',       bud:7800, roas:470 },
+  { g:'etc', tag:'DA', brand:'골기',  name:'카카오 선물하기', bud:4800, roas:460 },
+];
+const CONSUME = 0.32, AOV = 60000;
+const CPC_BY = { SA: 680, DA: 430, ETC: 540 }, CTR_BY = { SA: 4.5, DA: 0.8, ETC: 1.3 };
+MEDIA.forEach(m => {
+  m.type = m.tag || 'ETC';
+  m.soje = Math.round(m.bud * CONSUME);
+  m.maechul = Math.round(m.soje * m.roas / 100);
+  m.cpc = CPC_BY[m.type] || 540;
+  m.ctr = CTR_BY[m.type] || 1.3;
+  m.clicks = Math.round(m.soje * 10000 / m.cpc);
+  m.impr = Math.round(m.clicks / (m.ctr / 100));
+  m.buys = Math.round(m.maechul * 10000 / AOV);
+  m.cvr = m.clicks ? (m.buys / m.clicks * 100) : 0;
+});
+const TOTAL_SOJE = MEDIA.reduce((a, m) => a + m.soje, 0);
+const fmtMan = n => n >= 1e8 ? (n / 1e8).toFixed(2) + '억' : n >= 1e5 ? Math.round(n / 1e4).toLocaleString() + '만' : n >= 1e4 ? (n / 1e4).toFixed(1) + '만' : Math.round(n).toLocaleString();
+
+const DIMS = {
+  channel: { field:'g',     cats:[['전체','전체'],['naver','네이버 브랜드스토어'],['coupang','쿠팡'],['etc','ETC']], colors:{ naver:'#03C75A', coupang:'#DC2626', etc:'#9CA3AF' } },
+  type:    { field:'type',  cats:[['전체','전체'],['SA','SA'],['DA','DA'],['ETC','ETC']], colors:{ SA:'#15803D', DA:'#1D4ED8', ETC:'#9CA3AF' } },
+  brand:   { field:'brand', cats:[['전체','전체'],['약손명가','약손명가 헬스케어'],['올리리라','올리리라'],['골기','골기']], colors:{ '약손명가':'#D8404D', '올리리라':'#4A90D9', '골기':'#C9A227' } },
+};
+let curDim = 'all', curCat = '전체';
+const money = man => man >= 10000 ? (man / 10000).toFixed(2) + '억' : man.toLocaleString() + '만';
+const tagHtml = t => t === 'SA' ? '<span class="tag-sa">SA</span>' : t === 'DA' ? '<span class="tag-da">DA</span>' : '<span class="tag-etc">ETC</span>';
+const catColor = (dim, cat) => cat === '전체' ? '#1A1A1A' : (DIMS[dim].colors[cat] || '#9CA3AF');
+const catLabel = (dim, cat) => { const f = DIMS[dim].cats.find(c => c[0] === cat); return f ? f[1] : cat; };
+
+function renderMix() {
+  const isAll = curDim === 'all';
+  const D = isAll ? null : DIMS[curDim];
+  const selBar = document.getElementById('mix-sel-bar');
+  if (isAll) {
+    selBar.style.display = 'none';
+    selBar.innerHTML = '';
+    curCat = '전체';
+  } else {
+    selBar.style.display = '';
+    selBar.innerHTML = D.cats.map(c => {
+      const k = c[0], label = c[1];
+      const r = k === '전체' ? MEDIA : MEDIA.filter(m => m[D.field] === k);
+      const sj = r.reduce((a, m) => a + m.soje, 0);
+      return `<div class="mix-sel ${k === curCat ? 'on' : ''}" data-k="${k}"><span class="ms-dot" style="background:${catColor(curDim, k)};"></span>${label} <span style="opacity:.6;font-weight:600;">${(sj / TOTAL_SOJE * 100).toFixed(0)}%</span></div>`;
+    }).join('');
+    document.querySelectorAll('#mix-sel-bar .mix-sel').forEach(el => el.addEventListener('click', function () { curCat = this.getAttribute('data-k'); renderMix(); }));
+  }
+
+  const rows = (isAll || curCat === '전체') ? MEDIA : MEDIA.filter(m => m[D.field] === curCat);
+  const soje = rows.reduce((a, m) => a + m.soje, 0), maechul = rows.reduce((a, m) => a + m.maechul, 0);
+  const roas = Math.round(maechul / soje * 100);
+  const catC = isAll ? '#1A1A1A' : catColor(curDim, curCat);
+  const catL = isAll ? '전체' : catLabel(curDim, curCat);
+  // 차원의 '전체' 선택 시 막대를 카테고리 비중으로 색 구분(세그먼트)
+  const showSeg = !isAll && curCat === '전체';
+  let barHtml;
+  if (showSeg) {
+    const segs = D.cats.filter(c => c[0] !== '전체').map(c => {
+      const sj = MEDIA.filter(m => m[D.field] === c[0]).reduce((a, m) => a + m.soje, 0);
+      return { w: sj / TOTAL_SOJE * 100, color: catColor(curDim, c[0]) };
+    });
+    barHtml = `<div class="mix-bar" style="display:flex;">${segs.map(s => `<div style="width:${s.w}%;height:100%;background:${s.color};"></div>`).join('')}</div>`;
+  } else {
+    barHtml = `<div class="mix-bar"><div class="mix-bar-fill" style="width:${(soje / TOTAL_SOJE * 100)}%;background:${catC};"></div></div>`;
+  }
+  document.getElementById('mix-summary').innerHTML = `
+    <div class="mix-card primary" style="grid-column:1 / -1;">
+      <div class="mix-head"><div class="mix-name"><span class="mix-dot" style="background:${catC};"></span>${catL} · 소진 포트폴리오</div>
+      <div class="mix-pct">${(soje / TOTAL_SOJE * 100).toFixed(0)}%</div></div>
+      ${barHtml}
+      <div class="mix-meta">
+        <div><span class="ml">소진</span><span class="mv">${money(soje)}</span></div>
+        <div><span class="ml">매출</span><span class="mv">${money(maechul)}</span></div>
+        <div><span class="ml">평균 ROAS</span><span class="mv">${roas}%</span></div>
+        <div><span class="ml">매체 수</span><span class="mv">${rows.length}개</span></div>
+      </div>
+    </div>`;
+
+  const sorted = rows.slice().sort((a, b) => b.soje - a.soje);
+  document.getElementById('mix-table').innerHTML = sorted.map(m => {
+    const rcls = m.roas >= 600 ? 'high' : m.roas >= 460 ? 'mid' : 'low';
+    const dotc = isAll ? catColor('channel', m.g) : catColor(curDim, m[D.field]);
+    return `<tr>
+      <td><span style="font-size:9px;color:${dotc};margin-right:5px;">●</span>${tagHtml(m.tag)} <span style="font-weight:700;color:#1A1A1A;margin-left:4px;">${m.name}</span></td>
+      <td class="right" style="color:#6B6B6B;">${money(m.soje)}</td>
+      <td class="right" style="color:#6B6B6B;">${fmtMan(m.impr)}</td>
+      <td class="right" style="color:#6B6B6B;">${fmtMan(m.clicks)}</td>
+      <td class="right" style="color:#6B6B6B;">${m.ctr.toFixed(1)}%</td>
+      <td class="right" style="color:#6B6B6B;">${m.cpc.toLocaleString()}</td>
+      <td class="right" style="color:#6B6B6B;">${fmtMan(m.buys)}</td>
+      <td class="right" style="color:#6B6B6B;">${m.cvr.toFixed(1)}%</td>
+      <td class="right" style="color:#1A1A1A;font-weight:700;">${money(m.maechul)}</td>
+      <td class="right"><span class="roas-pill ${rcls}">${m.roas}%</span></td>
+    </tr>`;
+  }).join('');
+}
+document.querySelectorAll('.mix-dim').forEach(el => el.addEventListener('click', function () {
+  document.querySelectorAll('.mix-dim').forEach(c => c.classList.remove('on'));
+  this.classList.add('on'); curDim = this.getAttribute('data-dim'); curCat = '전체'; renderMix();
+}));
+
+// ============================================================
+// 데일리 리포트 업로드 + AI 분석 코멘트 (업로드 리포트 기반 자동 코멘트)
+// ============================================================
+let reportLoaded = false, reportName = '';
+function renderAI() {
+  const body = document.getElementById('ai-body');
+  if (!reportLoaded) {
+    body.innerHTML = `<div class="ai-empty">데일리 리포트를 업로드하면<br>전일 대비 AI 비교 분석이 자동 생성됩니다.</div>`;
+    return;
+  }
+  const b = BRANDS[curBrand], p = PERIODS[curPeriod];
+  const rev = REV_ANNUAL * b.share * p.revMul, spend = SPEND_ANNUAL * b.share * p.spendMul, roas = Math.round(b.roas + p.roasAdd);
+  const fmt = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
+  const money = man => man >= 10000 ? (man / 10000).toFixed(2) + '억' : man.toLocaleString() + '만';
+  const byRoas = MEDIA.slice().sort((x, y) => y.roas - x.roas);
+  const best = byRoas[0], worst = byRoas[byRoas.length - 1];
+  const byMae = MEDIA.slice().sort((x, y) => y.maechul - x.maechul)[0];
+  const rp = SPLIT[curBrand][1];
+  const lines = [
+    { ic: '📊', tx: `<b>${curPeriod} · ${curBrand} 종합</b> — 총 매출 <b>${fmt(rev)}억</b>(전일 대비 +3.2%p), 광고비 <b>${fmt(spend)}억</b>(+1.8%p), 평균 ROAS <b>${roas}%</b>(+2.1%p)로 목표 500% 상회. 효율·매출 동반 개선 흐름.` },
+    { ic: '🟢', tx: `<b>호조</b> — <b>${best.name}</b> ROAS ${best.roas}%로 최고 효율, <b>${byMae.name}</b>이 매출 기여 1위(${money(byMae.maechul)}). 재구매 매출 비중 <b>${rp}%</b>로 LTV 기반 견조.` },
+    { ic: '🟡', tx: `<b>점검</b> — <b>${worst.name}</b> ROAS ${worst.roas}%로 목표 하회. 소재·입찰 점검 권고.` },
+    { ic: '💡', tx: `<b>권고(제안)</b> — ① 고효율 매체 예산 비중 상향 검토 ② 저효율 매체 크리에이티브 A/B 교체. <i style="color:#999;">실행은 승인 후 진행.</i>` },
+  ];
+  body.innerHTML = lines.map(l => `<div class="ai-line"><span class="ai-ic">${l.ic}</span><span class="ai-tx">${l.tx}</span></div>`).join('')
+    + `<div class="ai-foot">⦿ AI 자동 생성 · ${reportName} 기준 · 전일(D-1) 대비 비교</div>`;
+}
+(function () {
+  const dz = document.getElementById('dropzone'), inp = document.getElementById('report-file'), status = document.getElementById('dz-status');
+  function handle(file) {
+    if (!file) return;
+    reportName = file.name;
+    status.textContent = '⏳ 리포트 분석 중...';
+    status.className = 'dz-status';
+    document.getElementById('ai-body').innerHTML = `<div class="ai-empty"><span class="ai-typing">AI가 전일 대비 리포트를 분석하고 있습니다…</span></div>`;
+    const finish = note => { reportLoaded = true; status.innerHTML = note; status.className = 'dz-status done'; renderAI(); };
+    setTimeout(() => {
+      if (/\.csv$/i.test(file.name)) {
+        const r = new FileReader();
+        r.onload = e => finish(`✓ <b>${file.name}</b> · ${Math.max(e.target.result.split(/\r?\n/).filter(x => x.trim()).length - 1, 0)}행 인식 완료`);
+        r.onerror = () => finish(`✓ <b>${file.name}</b> 업로드 완료`);
+        r.readAsText(file);
+      } else {
+        finish(`✓ <b>${file.name}</b> 업로드 완료`);
+      }
+    }, 700);
+  }
+  dz.addEventListener('click', () => inp.click());
+  inp.addEventListener('change', e => handle(e.target.files[0]));
+  ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', e => { if (e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); });
+})();
+
+// 초기 렌더
+renderKPI(); renderTrend(); renderSplit(); renderMix(); renderAI();
+</script>
+
+</body>
+</html>
