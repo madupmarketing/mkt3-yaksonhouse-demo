@@ -81,6 +81,13 @@
       <span class="filter-chip brand" onclick="setFilter(this,'ollira')">올리리라</span>
       <span class="filter-chip brand" onclick="setFilter(this,'golgi')">골기</span>
     </div>
+    <div class="filter-bar" style="margin-top:-8px;">
+      <span style="font-size:11px;color:#999;font-weight:700;margin-right:4px;align-self:center;">채널</span>
+      <span class="filter-chip chan active" onclick="setChannel('all',this)">전체</span>
+      <span class="filter-chip chan" onclick="setChannel('store',this)">브랜드스토어</span>
+      <span class="filter-chip chan" onclick="setChannel('coupang',this)">쿠팡</span>
+      <span class="filter-chip chan" onclick="setChannel('etc',this)">기타</span>
+    </div>
 
     <!-- KPI GRID -->
     <div class="kpi-grid cols-4" id="kpi-grid"></div>
@@ -89,7 +96,7 @@
     <div class="brand-section">
       <div class="section-title">
         교차구매 추천 라인업
-        <span class="section-title-sub">전체 등록 제품 조합 · 크로스셀 지수 상위 5</span>
+        <span class="section-title-sub" id="cross-sub">전체 · 전체 등록 제품 조합 · 크로스셀 지수 상위 5</span>
       </div>
       <div id="cross-sell-grid"></div>
     </div>
@@ -98,7 +105,7 @@
     <div class="table-card brand-section">
       <div class="section-title">
         브랜드·SKU별 성과
-        <span class="section-title-sub">매출·ROAS·재구매율</span>
+        <span class="section-title-sub" id="sku-sub">전체 채널 · 매출·ROAS·재구매율</span>
       </div>
       <table>
         <thead>
@@ -127,17 +134,25 @@
 // ----- SKU 마스터 (브랜드별) — 홈페이지 실제 제품명 기준 -----
 const SKU_DATA = [
   // 약손명가 — 리프팅밴드 PRO·패치·석고 마스크팩·복부패치
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅밴드 PRO', revenue: '7,840만원', roas: 480, repur: '1.79%', firstPct: '98.2%' },
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅패치', revenue: '3,210만원', roas: 310, repur: '4.12%', firstPct: '91.4%' },
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'gypsum',    sku: '밀크엑소좀 석고 마스크팩', revenue: '2,150만원', roas: 270, repur: '3.50%', firstPct: '93.1%' },
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'pdrn',      sku: 'PDRN 콜라겐 석고마스크팩', revenue: '1,420만원', roas: 195, repur: '6.20%', firstPct: '87.3%' },
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'yeorihan',  sku: '여리한 패치', revenue: '1,680만원', roas: 220, repur: '5.80%', firstPct: '89.7%' },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅밴드 PRO', rev: 7840, roas: 480, repur: 1.79, firstPct: 98.2 },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅패치', rev: 3210, roas: 310, repur: 4.12, firstPct: 91.4 },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'gypsum',    sku: '밀크엑소좀 석고 마스크팩', rev: 2150, roas: 270, repur: 3.50, firstPct: 93.1 },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'pdrn',      sku: 'PDRN 콜라겐 석고마스크팩', rev: 1420, roas: 195, repur: 6.20, firstPct: 87.3 },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'yeorihan',  sku: '여리한 패치', rev: 1680, roas: 220, repur: 5.80, firstPct: 89.7 },
   // 올리리라 — 올리리라밴드
-  { brand: 'ollira', brandLabel: '올리리라', brandColor: '#4A90D9', img: 'olli',      sku: '올리리라밴드', revenue: '4,950만원', roas: 390, repur: '2.31%', firstPct: '95.8%' },
+  { brand: 'ollira', brandLabel: '올리리라', brandColor: '#4A90D9', img: 'olli',      sku: '올리리라밴드', rev: 4950, roas: 390, repur: 2.31, firstPct: 95.8 },
   // 골기 — 페이스 스톤·바디 스톤
-  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'facestone', sku: '골기 페이스 스톤', revenue: '1,830만원', roas: 240, repur: '3.90%', firstPct: '92.5%' },
-  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'bodystone', sku: '골기 바디 스톤', revenue: '980만원', roas: 175, repur: '4.60%', firstPct: '90.2%' },
+  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'facestone', sku: '골기 페이스 스톤', rev: 1830, roas: 240, repur: 3.90, firstPct: 92.5 },
+  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'bodystone', sku: '골기 바디 스톤', rev: 980, roas: 175, repur: 4.60, firstPct: 90.2 },
 ];
+// 채널 분류 — VOC와 동일 체계(전체/브랜드스토어/쿠팡/기타), SKU·교차구매 성과에 적용
+const PCHAN = {
+  all:     { label: '전체',        revMul: 1.00, roasAdd: 0,   repurAdd: 0,    attachMul: 1.00 },
+  store:   { label: '브랜드스토어', revMul: 0.52, roasAdd: 35,  repurAdd: 0.4,  attachMul: 1.15 },
+  coupang: { label: '쿠팡',        revMul: 0.33, roasAdd: -45, repurAdd: -0.5, attachMul: 0.80 },
+  etc:     { label: '기타',        revMul: 0.15, roasAdd: -15, repurAdd: -0.2, attachMul: 0.90 },
+};
+const wonMan = man => man >= 10000 ? (man / 10000).toFixed(2) + '억원' : Math.round(man).toLocaleString() + '만원';
 
 // ----- 브랜드별 KPI 데이터 -----
 // kpi 카드: [등록 SKU, 누적 판매, 매출, 재구매율]
@@ -182,14 +197,20 @@ const BRAND_VIEW = {
   },
 };
 
-let curBrand = 'all';
+let curBrand = 'all', curChannel = 'all';
 
 // ===== 칩 클릭 핸들러: active 토글 + 전체 위젯 재렌더 =====
 function setFilter(el, brand) {
   document.querySelectorAll('.filter-chip.brand').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   curBrand = brand;
-  render(brand);
+  render();
+}
+function setChannel(ch, el) {
+  document.querySelectorAll('.filter-chip.chan').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  curChannel = ch;
+  renderTable(); renderCross();
 }
 
 // ===== KPI 그리드 =====
@@ -213,8 +234,9 @@ function roasPill(roas) {
   if (roas >= 220) return `<span class="roas-pill mid">${roas}%</span>`;
   return `<span class="roas-pill low">${roas}%</span>`;
 }
-function renderTable(brand) {
-  const filtered = brand === 'all' ? SKU_DATA : SKU_DATA.filter(r => r.brand === brand);
+function renderTable() {
+  const filtered = curBrand === 'all' ? SKU_DATA : SKU_DATA.filter(r => r.brand === curBrand);
+  const c = PCHAN[curChannel];
   let html = '', lastBrand = null;
   filtered.forEach(r => {
     if (r.brandLabel !== lastBrand) {
@@ -226,15 +248,19 @@ function renderTable(brand) {
       </tr>`;
       lastBrand = r.brandLabel;
     }
+    const rev = wonMan(r.rev * c.revMul);
+    const roas = Math.max(50, Math.round(r.roas + c.roasAdd));
+    const repur = Math.max(0.1, r.repur + c.repurAdd).toFixed(2);
     html += `<tr>
       <td style="font-weight:600;color:#1A1A1A;"><img class="sku-thumb" src="../_assets/products/${r.img}.jpg" alt="${r.sku}" loading="lazy">${r.sku}</td>
-      <td class="right">${r.revenue}</td>
-      <td class="right">${roasPill(r.roas)}</td>
-      <td class="right" style="font-weight:700;color:#1A1A1A;">${r.repur}</td>
-      <td class="right" style="color:#6B6B6B;">${r.firstPct}</td>
+      <td class="right">${rev}</td>
+      <td class="right">${roasPill(roas)}</td>
+      <td class="right" style="font-weight:700;color:#1A1A1A;">${repur}%</td>
+      <td class="right" style="color:#6B6B6B;">${r.firstPct.toFixed(1)}%</td>
     </tr>`;
   });
   document.getElementById('sku-table').innerHTML = html;
+  document.getElementById('sku-sub').textContent = `${c.label} 채널 · 매출·ROAS·재구매율`;
 }
 
 // ===== 크로스셀 지수 랭킹 =====
@@ -274,14 +300,15 @@ function buildPairs() {
 // 근거(유입·구매 볼륨)는 텍스트로 노출하지 않고, 행 호버 시 팝오버로 연출
 function renderCross() {
   const top = buildPairs().slice(0, 5);
+  const c = PCHAN[curChannel];
   document.getElementById('cross-sell-grid').innerHTML = '<div class="xrank">' + top.map((p, i) => {
     // 디바이스(앵커 제품)를 앞에 배치
     const first = p.a.type === 'device' ? p.a : (p.b.type === 'device' ? p.b : p.a);
     const second = first === p.a ? p.b : p.a;
     const idx = Math.round(p.score);
     // 근거 — 유입/구매 볼륨 (점수·주문량 기반 결정값)
-    const attach = (p.score * 0.22).toFixed(1);                                        // 교차 유입률 %
-    const coBuy  = Math.round(Math.min(p.a.orders, p.b.orders) * p.score / 100 * 0.6); // 90일 동시구매 건
+    const attach = (p.score * 0.22 * c.attachMul).toFixed(1);                                     // 교차 유입률 %
+    const coBuy  = Math.round(Math.min(p.a.orders, p.b.orders) * p.score / 100 * 0.6 * c.revMul); // 90일 동시구매 건
     const coView = Math.round(p.score * 0.4);                                          // 함께 조회 %
     // 최근 8주 동시구매 추이 (주간) — 결정적 상승 패턴
     const wAvg = coBuy / 13;
@@ -318,17 +345,18 @@ function renderCross() {
       </div>
     </div>`;
   }).join('') + '</div>';
+  document.getElementById('cross-sub').textContent = `${PCHAN[curChannel].label} · 전체 등록 제품 조합 · 크로스셀 지수 상위 5`;
 }
 
 // ===== 오케스트레이터 =====
-function render(brand) {
-  renderKPI(brand);
-  renderTable(brand);
+function render() {
+  renderKPI(curBrand);
+  renderTable();
   renderCross();
 }
 
 // 초기 렌더
-render('all');
+render();
 </script>
 
 </body>
