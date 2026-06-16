@@ -282,11 +282,25 @@ function renderTable() {
     const roas = Math.max(50, Math.round(r.roas + pc.roasAdd));
     const repur = Math.max(0.1, r.repur + pc.repurAdd).toFixed(2);
     const m = r.chMix;
-    const evi = `<div class="sku-evi">
+    let evi;
+    if (ch === 'all') {
+      // 전체: 이 제품의 채널별 매출 비중(브랜드스토어/쿠팡/기타)
+      evi = `<div class="sku-evi">
         <div class="sku-evi-title">📊 채널별 매출 비중 — ${r.sku}</div>
         <div class="sku-evi-bar"><i style="width:${m.store}%;background:#03C75A;"></i><i style="width:${m.coupang}%;background:#DC2626;"></i><i style="width:${m.etc}%;background:#9CA3AF;"></i></div>
         <div class="sku-evi-leg"><span><span class="dot" style="background:#03C75A;"></span>브랜드스토어 ${m.store}%</span><span><span class="dot" style="background:#DC2626;"></span>쿠팡 ${m.coupang}%</span><span><span class="dot" style="background:#9CA3AF;"></span>기타 ${m.etc}%</span></div>
       </div>`;
+    } else {
+      // 특정 채널: 해당 채널에서 이 제품이 브랜드 매출 합계에서 차지하는 비중
+      const skuChanRev = r.rev * r.chMix[ch] / 100;
+      const brandChanRev = SKU_DATA.filter(x => x.brand === r.brand).reduce((s, x) => s + x.rev * x.chMix[ch] / 100, 0);
+      const share = brandChanRev ? skuChanRev / brandChanRev * 100 : 0;
+      evi = `<div class="sku-evi">
+        <div class="sku-evi-title">📊 ${r.brandLabel} 내 매출 비중 · ${pc.label}</div>
+        <div class="sku-evi-bar"><i style="width:${share.toFixed(1)}%;background:${r.brandColor};"></i><i style="width:${(100 - share).toFixed(1)}%;background:#EFEFEF;"></i></div>
+        <div class="sku-evi-leg"><span style="color:${r.brandColor};font-weight:800;">${r.sku} ${share.toFixed(1)}%</span><span>${wonMan(skuChanRev)} / 브랜드 합계 ${wonMan(brandChanRev)}</span></div>
+      </div>`;
+    }
     html += `<tr class="sku-row">
       <td style="font-weight:600;color:#1A1A1A;"><img class="sku-thumb" src="../_assets/products/${r.img}.jpg" alt="${r.sku}" loading="lazy">${r.sku}${evi}</td>
       <td class="right">${rev}</td>
@@ -324,18 +338,25 @@ function xscore(a, b) {
   const bridge = a.brand !== b.brand ? 10 : 0;
   return complement + concern + routine + loop + bridge;
 }
-function buildPairs() {
+// 채널별 교차구매 성향 보정 — 순위·볼륨이 채널 따라 달라짐
+function chanBonus(a, b, chan) {
+  if (chan === 'store')   return (a.brand === b.brand ? 14 : 0) + (a.type !== b.type ? 6 : 0);          // 브랜드스토어: 동일 브랜드 세트·리필 루프
+  if (chan === 'coupang') return Math.max(a.repur, b.repur) * 2 + (a.brand !== b.brand ? -12 : 0);      // 쿠팡: 고재구매 소모재·크로스브랜드 약함
+  if (chan === 'etc')     return ((a.brand === 'golgi' || b.brand === 'golgi') ? 16 : 0) + ((a.type === 'consumable' || b.type === 'consumable') ? 6 : 0); // 기타(올리브영·카카오): 선물 수요·발견형 소모재
+  return 0;
+}
+function buildPairs(chan) {
   const pairs = [];
   for (let i = 0; i < XSKU.length; i++)
     for (let j = i + 1; j < XSKU.length; j++)
-      pairs.push({ a: XSKU[i], b: XSKU[j], score: xscore(XSKU[i], XSKU[j]) });
+      pairs.push({ a: XSKU[i], b: XSKU[j], score: xscore(XSKU[i], XSKU[j]) + chanBonus(XSKU[i], XSKU[j], chan) });
   pairs.sort((x, y) => y.score - x.score);
   return pairs;
 }
 // ===== 교차구매 추천 라인업 (전체 제품 조합 Top 5) =====
 // 근거(유입·구매 볼륨)는 텍스트로 노출하지 않고, 행 호버 시 팝오버로 연출
 function renderCross() {
-  const top = buildPairs().slice(0, 5);
+  const top = buildPairs(curCrossChan).slice(0, 5);
   const c = PCHAN[curCrossChan];
   document.getElementById('cross-sell-grid').innerHTML = '<div class="xrank">' + top.map((p, i) => {
     // 디바이스(앵커 제품)를 앞에 배치
