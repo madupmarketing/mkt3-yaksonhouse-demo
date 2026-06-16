@@ -42,6 +42,23 @@
   /* ===== 제품 썸네일 (홈페이지 실제 제품 이미지) ===== */
   .sku-thumb { width:36px; height:36px; border-radius:8px; object-fit:cover; vertical-align:middle; margin-right:11px; border:1px solid #EEE; background:#F7F7F7; }
   .xthumb { width:28px; height:28px; border-radius:7px; object-fit:cover; border:1px solid #EEE; background:#F7F7F7; flex:none; }
+
+  /* ===== 영역별 채널 셀렉터 라벨 ===== */
+  .sel-label { font-size:11px; color:#999; font-weight:700; margin-right:4px; align-self:center; }
+
+  /* ===== SKU 행 호버 — 채널별 매출 비중 미니 그래프 ===== */
+  .sku-row td:first-child { position:relative; }
+  .sku-evi { position:absolute; left:46px; top:calc(100% - 2px); z-index:30; width:236px; background:#fff;
+    border:1px solid #E5E5E5; border-radius:11px; padding:11px 13px; box-shadow:0 12px 30px rgba(0,0,0,.15);
+    opacity:0; transform:translateY(-5px); pointer-events:none; transition:opacity .18s, transform .18s; }
+  .sku-row:hover td:first-child { z-index:5; }
+  .sku-row:hover .sku-evi { opacity:1; transform:translateY(0); }
+  .sku-row:last-child .sku-evi { top:auto; bottom:calc(100% - 2px); transform:translateY(5px); }
+  .sku-evi-title { font-size:10.5px; font-weight:800; color:#1A1A1A; margin-bottom:8px; }
+  .sku-evi-bar { display:flex; height:14px; border-radius:5px; overflow:hidden; }
+  .sku-evi-bar > i { height:100%; }
+  .sku-evi-leg { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:10px; color:#6B6B6B; font-weight:600; }
+  .sku-evi-leg .dot { width:8px; height:8px; border-radius:2px; display:inline-block; margin-right:4px; vertical-align:middle; }
 </style>
 </head>
 <body>
@@ -81,13 +98,6 @@
       <span class="filter-chip brand" onclick="setFilter(this,'ollira')">올리리라</span>
       <span class="filter-chip brand" onclick="setFilter(this,'golgi')">골기</span>
     </div>
-    <div class="filter-bar" style="margin-top:-8px;">
-      <span style="font-size:11px;color:#999;font-weight:700;margin-right:4px;align-self:center;">채널</span>
-      <span class="filter-chip chan active" onclick="setChannel('all',this)">전체</span>
-      <span class="filter-chip chan" onclick="setChannel('store',this)">브랜드스토어</span>
-      <span class="filter-chip chan" onclick="setChannel('coupang',this)">쿠팡</span>
-      <span class="filter-chip chan" onclick="setChannel('etc',this)">기타</span>
-    </div>
 
     <!-- KPI GRID -->
     <div class="kpi-grid cols-4" id="kpi-grid"></div>
@@ -98,6 +108,13 @@
         교차구매 추천 라인업
         <span class="section-title-sub" id="cross-sub">전체 · 전체 등록 제품 조합 · 크로스셀 지수 상위 5</span>
       </div>
+      <div class="filter-bar" style="margin-bottom:14px;">
+        <span class="sel-label">채널</span>
+        <span class="filter-chip xchan active" onclick="setCrossChan('all',this)">전체</span>
+        <span class="filter-chip xchan" onclick="setCrossChan('store',this)">브랜드스토어</span>
+        <span class="filter-chip xchan" onclick="setCrossChan('coupang',this)">쿠팡</span>
+        <span class="filter-chip xchan" onclick="setCrossChan('etc',this)">기타</span>
+      </div>
       <div id="cross-sell-grid"></div>
     </div>
 
@@ -106,6 +123,13 @@
       <div class="section-title">
         브랜드·SKU별 성과
         <span class="section-title-sub" id="sku-sub">전체 채널 · 매출·ROAS·재구매율</span>
+      </div>
+      <div class="filter-bar" style="margin-bottom:14px;">
+        <span class="sel-label">채널</span>
+        <span class="filter-chip schan active" onclick="setSkuChan('all',this)">전체</span>
+        <span class="filter-chip schan" onclick="setSkuChan('store',this)">브랜드스토어</span>
+        <span class="filter-chip schan" onclick="setSkuChan('coupang',this)">쿠팡</span>
+        <span class="filter-chip schan" onclick="setSkuChan('etc',this)">기타</span>
       </div>
       <table>
         <thead>
@@ -134,16 +158,16 @@
 // ----- SKU 마스터 (브랜드별) — 홈페이지 실제 제품명 기준 -----
 const SKU_DATA = [
   // 약손명가 — 리프팅밴드 PRO·패치·석고 마스크팩·복부패치
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅밴드 PRO', rev: 7840, roas: 480, repur: 1.79, firstPct: 98.2 },
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅패치', rev: 3210, roas: 310, repur: 4.12, firstPct: 91.4 },
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'gypsum',    sku: '밀크엑소좀 석고 마스크팩', rev: 2150, roas: 270, repur: 3.50, firstPct: 93.1 },
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'pdrn',      sku: 'PDRN 콜라겐 석고마스크팩', rev: 1420, roas: 195, repur: 6.20, firstPct: 87.3 },
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'yeorihan',  sku: '여리한 패치', rev: 1680, roas: 220, repur: 5.80, firstPct: 89.7 },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅밴드 PRO', rev: 7840, roas: 480, repur: 1.79, firstPct: 98.2, chMix: { store: 60, coupang: 28, etc: 12 } },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅패치', rev: 3210, roas: 310, repur: 4.12, firstPct: 91.4, chMix: { store: 55, coupang: 30, etc: 15 } },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'gypsum',    sku: '밀크엑소좀 석고 마스크팩', rev: 2150, roas: 270, repur: 3.50, firstPct: 93.1, chMix: { store: 48, coupang: 38, etc: 14 } },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'pdrn',      sku: 'PDRN 콜라겐 석고마스크팩', rev: 1420, roas: 195, repur: 6.20, firstPct: 87.3, chMix: { store: 50, coupang: 35, etc: 15 } },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'yeorihan',  sku: '여리한 패치', rev: 1680, roas: 220, repur: 5.80, firstPct: 89.7, chMix: { store: 45, coupang: 42, etc: 13 } },
   // 올리리라 — 올리리라밴드
-  { brand: 'ollira', brandLabel: '올리리라', brandColor: '#4A90D9', img: 'olli',      sku: '올리리라밴드', rev: 4950, roas: 390, repur: 2.31, firstPct: 95.8 },
+  { brand: 'ollira', brandLabel: '올리리라', brandColor: '#4A90D9', img: 'olli',      sku: '올리리라밴드', rev: 4950, roas: 390, repur: 2.31, firstPct: 95.8, chMix: { store: 65, coupang: 22, etc: 13 } },
   // 골기 — 페이스 스톤·바디 스톤
-  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'facestone', sku: '골기 페이스 스톤', rev: 1830, roas: 240, repur: 3.90, firstPct: 92.5 },
-  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'bodystone', sku: '골기 바디 스톤', rev: 980, roas: 175, repur: 4.60, firstPct: 90.2 },
+  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'facestone', sku: '골기 페이스 스톤', rev: 1830, roas: 240, repur: 3.90, firstPct: 92.5, chMix: { store: 50, coupang: 24, etc: 26 } },
+  { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'bodystone', sku: '골기 바디 스톤', rev: 980, roas: 175, repur: 4.60, firstPct: 90.2, chMix: { store: 47, coupang: 28, etc: 25 } },
 ];
 // 채널 분류 — VOC와 동일 체계(전체/브랜드스토어/쿠팡/기타), SKU·교차구매 성과에 적용
 const PCHAN = {
@@ -197,20 +221,26 @@ const BRAND_VIEW = {
   },
 };
 
-let curBrand = 'all', curChannel = 'all';
+let curBrand = 'all', curCrossChan = 'all', curSkuChan = 'all';
 
-// ===== 칩 클릭 핸들러: active 토글 + 전체 위젯 재렌더 =====
+// ===== 칩 클릭 핸들러: 브랜드(상단) / 교차구매·SKU 영역별 채널 =====
 function setFilter(el, brand) {
   document.querySelectorAll('.filter-chip.brand').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   curBrand = brand;
   render();
 }
-function setChannel(ch, el) {
-  document.querySelectorAll('.filter-chip.chan').forEach(c => c.classList.remove('active'));
+function setCrossChan(ch, el) {
+  document.querySelectorAll('.filter-chip.xchan').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
-  curChannel = ch;
-  renderTable(); renderCross();
+  curCrossChan = ch;
+  renderCross();
+}
+function setSkuChan(ch, el) {
+  document.querySelectorAll('.filter-chip.schan').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  curSkuChan = ch;
+  renderTable();
 }
 
 // ===== KPI 그리드 =====
@@ -236,7 +266,7 @@ function roasPill(roas) {
 }
 function renderTable() {
   const filtered = curBrand === 'all' ? SKU_DATA : SKU_DATA.filter(r => r.brand === curBrand);
-  const c = PCHAN[curChannel];
+  const ch = curSkuChan, pc = PCHAN[ch];
   let html = '', lastBrand = null;
   filtered.forEach(r => {
     if (r.brandLabel !== lastBrand) {
@@ -248,11 +278,17 @@ function renderTable() {
       </tr>`;
       lastBrand = r.brandLabel;
     }
-    const rev = wonMan(r.rev * c.revMul);
-    const roas = Math.max(50, Math.round(r.roas + c.roasAdd));
-    const repur = Math.max(0.1, r.repur + c.repurAdd).toFixed(2);
-    html += `<tr>
-      <td style="font-weight:600;color:#1A1A1A;"><img class="sku-thumb" src="../_assets/products/${r.img}.jpg" alt="${r.sku}" loading="lazy">${r.sku}</td>
+    const rev = wonMan(ch === 'all' ? r.rev : r.rev * r.chMix[ch] / 100);
+    const roas = Math.max(50, Math.round(r.roas + pc.roasAdd));
+    const repur = Math.max(0.1, r.repur + pc.repurAdd).toFixed(2);
+    const m = r.chMix;
+    const evi = `<div class="sku-evi">
+        <div class="sku-evi-title">📊 채널별 매출 비중 — ${r.sku}</div>
+        <div class="sku-evi-bar"><i style="width:${m.store}%;background:#03C75A;"></i><i style="width:${m.coupang}%;background:#DC2626;"></i><i style="width:${m.etc}%;background:#9CA3AF;"></i></div>
+        <div class="sku-evi-leg"><span><span class="dot" style="background:#03C75A;"></span>브랜드스토어 ${m.store}%</span><span><span class="dot" style="background:#DC2626;"></span>쿠팡 ${m.coupang}%</span><span><span class="dot" style="background:#9CA3AF;"></span>기타 ${m.etc}%</span></div>
+      </div>`;
+    html += `<tr class="sku-row">
+      <td style="font-weight:600;color:#1A1A1A;"><img class="sku-thumb" src="../_assets/products/${r.img}.jpg" alt="${r.sku}" loading="lazy">${r.sku}${evi}</td>
       <td class="right">${rev}</td>
       <td class="right">${roasPill(roas)}</td>
       <td class="right" style="font-weight:700;color:#1A1A1A;">${repur}%</td>
@@ -260,7 +296,7 @@ function renderTable() {
     </tr>`;
   });
   document.getElementById('sku-table').innerHTML = html;
-  document.getElementById('sku-sub').textContent = `${c.label} 채널 · 매출·ROAS·재구매율`;
+  document.getElementById('sku-sub').textContent = `${pc.label} 채널 · 매출·ROAS·재구매율`;
 }
 
 // ===== 크로스셀 지수 랭킹 =====
@@ -300,7 +336,7 @@ function buildPairs() {
 // 근거(유입·구매 볼륨)는 텍스트로 노출하지 않고, 행 호버 시 팝오버로 연출
 function renderCross() {
   const top = buildPairs().slice(0, 5);
-  const c = PCHAN[curChannel];
+  const c = PCHAN[curCrossChan];
   document.getElementById('cross-sell-grid').innerHTML = '<div class="xrank">' + top.map((p, i) => {
     // 디바이스(앵커 제품)를 앞에 배치
     const first = p.a.type === 'device' ? p.a : (p.b.type === 'device' ? p.b : p.a);
@@ -345,7 +381,7 @@ function renderCross() {
       </div>
     </div>`;
   }).join('') + '</div>';
-  document.getElementById('cross-sub').textContent = `${PCHAN[curChannel].label} · 전체 등록 제품 조합 · 크로스셀 지수 상위 5`;
+  document.getElementById('cross-sub').textContent = `${PCHAN[curCrossChan].label} · 전체 등록 제품 조합 · 크로스셀 지수 상위 5`;
 }
 
 // ===== 오케스트레이터 =====
