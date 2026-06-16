@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>약손명가헬스케어 · 부정 리뷰 관리</title>
+<title>약손명가헬스케어 · 소재 부정 댓글 관리</title>
 <link rel="stylesheet" href="../_assets/dashboard.css">
 <style>
 /* ===== Severity badge ===== */
@@ -78,27 +78,6 @@
   padding: 3px 9px; display: inline-block;
 }
 
-/* ===== Review list ===== */
-.review-list { display: flex; flex-direction: column; gap: 14px; }
-.review-item {
-  padding: 14px 16px; border: 1px solid #EAEAEA; border-radius: 12px;
-  background: #FFFFFF;
-}
-.review-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 6px;
-}
-.review-stars { color: #F5B301; font-size: 13px; letter-spacing: 1px; }
-.review-stars .empty { color: #E0E0E0; }
-.review-product { font-size: 11px; font-weight: 700; color: #D8404D; }
-.review-text { font-size: 12.5px; color: #333; line-height: 1.55; margin-bottom: 7px; }
-.review-meta { display: flex; gap: 12px; font-size: 10px; color: #999; font-weight: 600; }
-.review-channel { background: #F0F0F0; padding: 2px 8px; border-radius: 10px; }
-.review-severity-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  display: inline-block; margin-right: 4px;
-}
-
 /* ===== MILOT status list ===== */
 .milot-list { display: flex; flex-direction: column; gap: 10px; }
 .milot-item {
@@ -156,6 +135,22 @@
 .cmtcat-fill { height:100%; border-radius:6px; }
 .cmtcat-val { font-size:11px; font-weight:800; color:#1A1A1A; width:78px; text-align:right; flex:none; }
 .cmtcat-val span { color:#999; font-weight:600; font-size:10px; }
+
+/* ===== 소재별 부정 댓글 집중 현황 ===== */
+.crv-list { display:flex; flex-direction:column; gap:14px; }
+.crv-row { display:flex; align-items:center; gap:12px; }
+.crv-plat { font-size:9.5px; font-weight:800; padding:3px 0; border-radius:6px; color:#fff; flex:none; width:78px; text-align:center; white-space:nowrap; }
+.crv-main { flex:1; min-width:0; }
+.crv-name { font-size:11.5px; font-weight:700; color:#1A1A1A; margin-bottom:6px; display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.crv-name > span:first-child { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.crv-type { font-size:10px; color:#999; font-weight:600; white-space:nowrap; flex:none; }
+.crv-track { height:11px; background:#EFEFEF; border-radius:6px; overflow:hidden; }
+.crv-fill { height:100%; border-radius:6px; transition:width .3s; }
+.crv-val { font-size:12px; font-weight:800; color:#1A1A1A; flex:none; text-align:right; white-space:nowrap; display:flex; align-items:center; gap:7px; }
+.crv-sev { font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:10px; }
+.crv-sev.high { background:#FEE2E2; color:#DC2626; }
+.crv-sev.mid  { background:#FEF3C7; color:#92400E; }
+.crv-sev.low  { background:#F3F4F6; color:#6B7280; }
 </style>
 </head>
 <body>
@@ -168,8 +163,8 @@
     <!-- Page Header -->
     <div class="page-header">
       <div>
-        <div class="page-title">부정 리뷰 관리</div>
-        <div class="page-sub">성과 이상 감지 · 부정 리뷰 · 라이브 광고 댓글 숨김 · 소재 검수 알림</div>
+        <div class="page-title">소재 부정 댓글 관리</div>
+        <div class="page-sub">라이브 중인 DA 광고 소재 댓글만 실시간 감지 · 유형 분류 · 숨김 검토</div>
       </div>
       <div class="page-meta">
         <span class="goal">🚨 실시간 모니터링</span>
@@ -180,16 +175,16 @@
     <!-- KPI Grid -->
     <div class="kpi-grid cols-4">
       <div class="kpi-card featured">
-        <div class="kpi-label">부정 코멘트</div>
+        <div class="kpi-label">DA 소재 부정 댓글</div>
         <div class="kpi-value" style="color:#DC2626;">98<span class="kpi-unit">건</span></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">숨김 처리 후보</div>
+        <div class="kpi-label">숨김 검토 후보</div>
         <div class="kpi-value" style="color:#F59E0B;">5<span class="kpi-unit">건</span></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">부정 리뷰</div>
-        <div class="kpi-value">5<span class="kpi-unit">건</span></div>
+        <div class="kpi-label">감지 대상 소재</div>
+        <div class="kpi-value">12<span class="kpi-unit">개</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">최다 불만 유형</div>
@@ -199,7 +194,7 @@
 
     <!-- 알림 현황 세그먼트 바 요약 -->
     <div class="alert-summary-wrap">
-      <span style="font-size:11.5px;font-weight:700;color:#999;white-space:nowrap;">알림 현황</span>
+      <span style="font-size:11.5px;font-weight:700;color:#999;white-space:nowrap;">댓글 심각도</span>
       <div class="alert-seg-bar" id="alert-seg-bar"></div>
       <div class="alert-seg-legend" id="alert-seg-legend"></div>
     </div>
@@ -207,8 +202,8 @@
     <!-- 매체별 부정 코멘트 관리 -->
     <div class="table-card">
       <div class="section-title">
-        🚨 매체별 부정 코멘트 관리
-        <span class="section-title-sub">집행 중 광고 댓글 실시간 감지 · 유형별 분류 · 숨김 처리 후보</span>
+        🚨 라이브 DA 소재 부정 댓글 감지
+        <span class="section-title-sub">집행 중인 디스플레이·영상·피드 광고 소재 댓글 실시간 감지 · 유형 분류 · 숨김 검토 후보</span>
       </div>
       <div class="cmtcat-wrap">
         <div class="cmtcat-title">유형별 분포 <span style="color:#999;font-weight:600;">· 총 98건</span></div>
@@ -220,13 +215,13 @@
       </div>
     </div>
 
-    <!-- 부정 리뷰 알림 -->
+    <!-- 소재별 부정 댓글 집중 현황 -->
     <div class="chart-card">
       <div class="section-title">
-        부정 리뷰 알림
-        <span class="section-title-sub">★1~2 신규 리뷰 실시간 감지</span>
+        소재별 부정 댓글 집중 현황
+        <span class="section-title-sub">부정 댓글 누적 상위 소재 · 라이브 12개 소재 모니터링 중</span>
       </div>
-      <div class="review-list" id="review-list"></div>
+      <div class="crv-list" id="crv-list"></div>
     </div>
 
   </main>
@@ -237,7 +232,7 @@
 // ===== 라이브 광고 댓글 — 부정 코멘트 (숨김 처리 후보) =====
 const ADCMT = [
   { plat:'Meta',      platColor:'#1877F2', ad:'META 협력광고 · 올리리라밴드',  text:'광고에서 본 만큼 효과를 느끼긴 어려웠어요. 조금 아쉽네요.', author:'jih****',  time:'2026-06-14 09:12', likes:8,  tag:'효과 불만',   sev:'mid'  },
-  { plat:'Instagram', platColor:'#E1306C', ad:'인스타 릴스 · 리프팅밴드',  text:'오히려 효과가 반대라는 후기를 봤는데 사실인지 궁금해요.',   author:'sk_****',  time:'2026-06-14 08:40', likes:14, tag:'허위성 주장', sev:'high' },
+  { plat:'Instagram', platColor:'#E1306C', ad:'인스타 릴스 · 리프팅밴드 PRO',  text:'오히려 효과가 반대라는 후기를 봤는데 사실인지 궁금해요.',   author:'sk_****',  time:'2026-06-14 08:40', likes:14, tag:'허위성 주장', sev:'high' },
   { plat:'네이버 GFA', platColor:'#03C75A', ad:'GFA · 올리리라밴드',           text:'배송이 예상보다 많이 늦어서 조금 아쉬웠어요.',           author:'rkd****',  time:'2026-06-13 18:22', likes:5,  tag:'배송 지연',   sev:'mid'  },
   { plat:'YouTube',   platColor:'#FF0000', ad:'유튜브 범퍼 · 골기 페이스 스톤',   text:'가격대가 다소 부담스럽게 느껴져요.',                     author:'구독****', time:'2026-06-13 21:05', likes:3,  tag:'가격 부담',   sev:'mid'  },
   { plat:'Meta',      platColor:'#1877F2', ad:'META 리타겟팅 · 재구매',    text:'환불 안내가 명확하지 않아 진행이 조금 헷갈렸어요.',       author:'min****',  time:'2026-06-13 15:10', likes:11, tag:'CS 안내',     sev:'mid'  },
@@ -261,79 +256,37 @@ document.getElementById('adcmt-list').innerHTML = ADCMT.map(c => {
   </div>`;
 }).join('');
 
-// ===== 부정 리뷰 데이터 =====
-const REVIEWS = [
-  {
-    stars: 2,
-    product: '올리리라밴드',
-    text: '착용 시 약간 당기는 느낌이 있었고, 기대한 리프팅 효과는 잘 모르겠어요. 재질이 조금 단단한 편입니다.',
-    date: '2026-06-13',
-    channel: '네이버 스마트스토어'
-  },
-  {
-    stars: 2,
-    product: '석고 마스크팩 5종 세트',
-    text: '향이 조금 강한 편이라 사용이 망설여졌어요. 진정 효과는 있었지만 기대보다는 아쉬웠습니다.',
-    date: '2026-06-12',
-    channel: '쿠팡'
-  },
-  {
-    stars: 2,
-    product: '골기 비더스톤',
-    text: '사용 후 피부가 살짝 예민해진 느낌이었어요. 환불 문의 응대가 조금 늦어 아쉬웠습니다.',
-    date: '2026-06-11',
-    channel: '네이버 쇼핑'
-  },
-  {
-    stars: 2,
-    product: '가뿐밴드',
-    text: '배송이 예상보다 늦고 포장이 살짝 아쉬웠어요. 제품 자체는 무난합니다.',
-    date: '2026-06-10',
-    channel: '자사몰'
-  },
+// ===== 소재별 부정 댓글 집중 현황 (라이브 DA 소재 누적 상위) =====
+const CREATIVE = [
+  { plat:'Instagram', platColor:'#E1306C', name:'인스타 릴스 · 리프팅밴드 PRO',   n:28, type:'허위성 주장', sev:'high', trend:'▲ +9' },
+  { plat:'Meta',      platColor:'#1877F2', name:'META 협력광고 · 올리리라밴드',   n:21, type:'효과 불만',  sev:'mid',  trend:'▲ +4' },
+  { plat:'네이버 GFA', platColor:'#03C75A', name:'GFA · 올리리라밴드',            n:18, type:'배송 지연',  sev:'mid',  trend:'▼ -2' },
+  { plat:'YouTube',   platColor:'#FF0000', name:'유튜브 범퍼 · 골기 페이스 스톤',  n:16, type:'가격 부담',  sev:'mid',  trend:'▲ +3' },
+  { plat:'Meta',      platColor:'#1877F2', name:'META 리타겟팅 · 재구매 소재',     n:15, type:'CS 안내',   sev:'low',  trend:'▲ +1' },
 ];
-
-function renderStars(n) {
-  let s = '';
-  for (let i = 1; i <= 5; i++) {
-    s += i <= n
-      ? '<span style="color:#F5B301;">★</span>'
-      : '<span style="color:#E0E0E0;">★</span>';
-  }
-  return s;
-}
-
-const sevDotColor = (stars) => stars === 1 ? '#DC2626' : '#F59E0B';
-
-document.getElementById('review-list').innerHTML = REVIEWS.map(r => `
-  <div class="review-item">
-    <div class="review-header">
-      <div>
-        <span class="review-stars">${renderStars(r.stars)}</span>
-        <span style="font-size:11px;font-weight:700;color:#6B6B6B;margin-left:6px;">${r.stars}.0</span>
-      </div>
-      <span class="review-product">${r.product}</span>
+const crvMax = Math.max.apply(null, CREATIVE.map(c => c.n));
+const SEV_META = { high:{ lab:'숨김 검토', color:'#DC2626' }, mid:{ lab:'주의', color:'#F59E0B' }, low:{ lab:'모니터링', color:'#9CA3AF' } };
+document.getElementById('crv-list').innerHTML = CREATIVE.map(c => {
+  const sm = SEV_META[c.sev];
+  const tcls = c.trend.indexOf('+') !== -1 ? 'chg-up' : c.trend.indexOf('-') !== -1 ? 'chg-down' : 'chg-mid';
+  return `<div class="crv-row">
+    <span class="crv-plat" style="background:${c.platColor};">${c.plat}</span>
+    <div class="crv-main">
+      <div class="crv-name"><span>${c.name}</span><span class="crv-type">최다 · ${c.type} · 7일 <span class="${tcls}">${c.trend}</span></span></div>
+      <div class="crv-track"><div class="crv-fill" style="width:${Math.round(c.n / crvMax * 100)}%;background:${sm.color};"></div></div>
     </div>
-    <div class="review-text">"${r.text}"</div>
-    <div class="review-meta">
-      <span>${r.date}</span>
-      <span class="review-channel">${r.channel}</span>
-      <span>
-        <span class="review-severity-dot" style="background:${sevDotColor(r.stars)};"></span>
-        ${r.stars === 1 ? '<span style="color:#DC2626;font-weight:700;">즉시 대응 필요</span>' : '<span style="color:#92400E;font-weight:700;">모니터링</span>'}
-      </span>
-    </div>
-  </div>
-`).join('');
+    <span class="crv-val">${c.n}건<span class="crv-sev ${c.sev}">${sm.lab}</span></span>
+  </div>`;
+}).join('');
 
 // ===== 상단 알림 현황 세그먼트 바 =====
 (function() {
-  const hide = 5, comment = 93, review = 5;
-  const total = hide + comment + review;
+  const hide = 5, watch = 28, feedback = 65;
+  const total = hide + watch + feedback;
   const segs = [
-    { label: '숨김 후보 5건', count: hide, color: '#DC2626' },
-    { label: '부정 코멘트 93건', count: comment, color: '#F59E0B' },
-    { label: '부정 리뷰 5건', count: review, color: '#6B7280' },
+    { label: '숨김 검토 5건', count: hide, color: '#DC2626' },
+    { label: '주의 28건', count: watch, color: '#F59E0B' },
+    { label: '단순 피드백 65건', count: feedback, color: '#6B7280' },
   ];
   const bar = document.getElementById('alert-seg-bar');
   const leg = document.getElementById('alert-seg-legend');

@@ -15,7 +15,7 @@
       { icon: '🔎', label: '경쟁사 광고 모니터링', key: 'yakson-keywords', href: '../yakson-keywords/index.html' }
     ]},
     { section: '리포트', items: [
-      { icon: '⚠️', label: '부정 리뷰 관리', key: 'yakson-alert', href: '../yakson-alert/index.html' }
+      { icon: '⚠️', label: '소재 부정 댓글 관리', key: 'yakson-alert', href: '../yakson-alert/index.html' }
     ]}
   ];
 

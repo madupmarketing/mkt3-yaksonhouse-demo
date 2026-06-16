@@ -44,6 +44,12 @@
   .metric-table th, .metric-table td { font-size:11px; padding:9px 7px; white-space:nowrap; }
   .metric-table th:first-child, .metric-table td:first-child { padding-left:14px; }
   .metric-table th:last-child, .metric-table td:last-child { padding-right:14px; }
+  /* 그룹 헤더 행 — 차원(채널/광고유형/브랜드)별 묶음 */
+  .metric-table tr.mt-grp td { background:#FAFAFA; border-top:1px solid #EFEFEF; padding:7px 14px; }
+  .mt-grp-row { display:flex; align-items:center; }
+  .mt-grp-dot { width:8px; height:8px; border-radius:2px; margin-right:8px; flex:none; }
+  .mt-grp-name { font-weight:800; font-size:11.5px; color:#1A1A1A; }
+  .mt-grp-agg { margin-left:auto; font-size:10.5px; color:#8A8A8A; font-weight:600; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -147,7 +153,7 @@
     <div class="mix-grid" id="mix-summary" style="margin-bottom:14px;"></div>
 
     <div class="table-card">
-      <div class="section-title">채널별 성과</div>
+      <div class="section-title" id="mix-table-title">채널별 성과</div>
       <table class="metric-table">
         <thead>
           <tr>
@@ -438,8 +444,11 @@ function renderMix() {
       </div>
     </div>`;
 
-  const sorted = rows.slice().sort((a, b) => b.soje - a.soje);
-  document.getElementById('mix-table').innerHTML = sorted.map(m => {
+  // 채널별/광고유형별/브랜드별 — 차원 선택 시 섹션 제목 전환
+  const DIM_TITLE = { all: '채널별 성과', channel: '채널별 성과', type: '광고 유형별 성과', brand: '브랜드별 성과' };
+  document.getElementById('mix-table-title').textContent = DIM_TITLE[curDim];
+
+  const rowHtml = m => {
     const rcls = m.roas >= 600 ? 'high' : m.roas >= 460 ? 'mid' : 'low';
     const dotc = isAll ? catColor('channel', m.g) : catColor(curDim, m[D.field]);
     return `<tr>
@@ -454,7 +463,29 @@ function renderMix() {
       <td class="right" style="color:#1A1A1A;font-weight:700;">${money(m.maechul)}</td>
       <td class="right"><span class="roas-pill ${rcls}">${m.roas}%</span></td>
     </tr>`;
-  }).join('');
+  };
+
+  let tbodyHtml;
+  if (isAll) {
+    // 전체: 기존대로 소진 내림차순 평면 정렬
+    tbodyHtml = rows.slice().sort((a, b) => b.soje - a.soje).map(rowHtml).join('');
+  } else {
+    // 차원 선택: 카테고리(채널 네이버/쿠팡/ETC · 유형 SA/DA/ETC · 브랜드 약손/올리리라/골기) 그룹 헤더로 묶어 정렬
+    tbodyHtml = D.cats.filter(c => c[0] !== '전체').map(c => {
+      const grp = rows.filter(m => m[D.field] === c[0]).sort((a, b) => b.soje - a.soje);
+      if (!grp.length) return '';
+      const gSoje = grp.reduce((a, m) => a + m.soje, 0);
+      const gMae = grp.reduce((a, m) => a + m.maechul, 0);
+      const gRoas = Math.round(gMae / gSoje * 100);
+      const head = `<tr class="mt-grp"><td colspan="10"><div class="mt-grp-row">
+        <span class="mt-grp-dot" style="background:${catColor(curDim, c[0])};"></span>
+        <span class="mt-grp-name">${c[1]}</span>
+        <span class="mt-grp-agg">소진 ${money(gSoje)} · 매출 ${money(gMae)} · ROAS ${gRoas}% · ${grp.length}개</span>
+      </div></td></tr>`;
+      return head + grp.map(rowHtml).join('');
+    }).join('');
+  }
+  document.getElementById('mix-table').innerHTML = tbodyHtml;
 }
 document.querySelectorAll('.mix-dim').forEach(el => el.addEventListener('click', function () {
   document.querySelectorAll('.mix-dim').forEach(c => c.classList.remove('on'));
