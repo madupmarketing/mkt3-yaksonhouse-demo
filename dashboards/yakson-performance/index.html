@@ -144,9 +144,9 @@
 
     <div class="section-title">채널 포트폴리오</div>
     <div class="mix-dim-bar">
-      <div class="mix-dim on" data-dim="all">전체</div>
+      <div class="mix-dim" data-dim="all">전체</div>
       <div class="mix-dim" data-dim="channel">채널</div>
-      <div class="mix-dim" data-dim="type">광고 유형</div>
+      <div class="mix-dim on" data-dim="type">광고 유형</div>
       <div class="mix-dim" data-dim="brand">브랜드</div>
     </div>
     <div class="mix-sel-bar" id="mix-sel-bar"></div>
@@ -389,7 +389,7 @@ const DIMS = {
   type:    { field:'type',  cats:[['전체','전체'],['SA','SA'],['DA','DA'],['ETC','ETC']], colors:{ SA:'#15803D', DA:'#1D4ED8', ETC:'#9CA3AF' } },
   brand:   { field:'brand', cats:[['전체','전체'],['약손명가','약손명가 헬스케어'],['올리리라','올리리라'],['골기','골기']], colors:{ '약손명가':'#D8404D', '올리리라':'#4A90D9', '골기':'#C9A227' } },
 };
-let curDim = 'all', curCat = '전체';
+let curDim = 'type', curCat = '전체';
 const money = man => man >= 10000 ? (man / 10000).toFixed(2) + '억' : man.toLocaleString() + '만';
 const tagHtml = t => t === 'SA' ? '<span class="tag-sa">SA</span>' : t === 'DA' ? '<span class="tag-da">DA</span>' : '<span class="tag-etc">ETC</span>';
 const catColor = (dim, cat) => cat === '전체' ? '#1A1A1A' : (DIMS[dim].colors[cat] || '#9CA3AF');
