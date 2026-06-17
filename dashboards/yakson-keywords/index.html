@@ -128,6 +128,21 @@
   .soge-cr-img { font-size:10.5px; color:#888; margin-top:9px; line-height:1.4; }
   .soge-cr-img b { color:#6B6B6B; }
   .soge-cr-comp { font-size:10px; color:#D8404D; font-weight:700; margin-top:7px; }
+  /* 클릭 가능한 소재 카드 + 미리보기 모달 */
+  .soge-cr.clickable { cursor:pointer; transition:transform .15s, box-shadow .15s, border-color .15s; }
+  .soge-cr.clickable:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.07); border-color:#D8404D; }
+  .cr-modal { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:20px; }
+  .cr-modal.on { display:flex; }
+  .cr-modal-card { background:#fff; border-radius:16px; width:min(440px,92vw); padding:20px 22px; box-shadow:0 24px 60px rgba(0,0,0,.3); }
+  .cr-modal-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .cr-modal-close { cursor:pointer; color:#999; font-size:16px; font-weight:700; flex:none; }
+  .cr-modal-close:hover { color:#1A1A1A; }
+  .cr-modal-preview { background:#F6F7F9; border:1.5px dashed #D8D8D8; border-radius:12px; padding:44px 16px; text-align:center; }
+  .cr-prev-icon { font-size:40px; margin-bottom:8px; opacity:.55; }
+  .cr-prev-txt { font-size:13px; font-weight:700; color:#6B6B6B; }
+  .cr-prev-sub { font-size:14px; font-weight:800; color:#D8404D; margin-top:6px; }
+  .cr-modal-meta { margin-top:16px; font-size:12px; color:#4A4A4A; line-height:1.8; }
+  .cr-modal-meta b { color:#1A1A1A; margin-right:6px; }
 </style>
 </head>
 <body>
@@ -224,6 +239,22 @@
       <span class="section-title-sub">자사 상표·브랜드 키워드를 사용한 경쟁사 광고 — 스크럽(상표권 보호) 신청 검토 대상</span>
     </div>
     <div class="scrub-list" id="scrub-list"></div>
+
+    <!-- 소재 미리보기 모달 -->
+    <div class="cr-modal" id="cr-modal" onclick="closeCrModal()">
+      <div class="cr-modal-card" onclick="event.stopPropagation()">
+        <div class="cr-modal-head">
+          <div id="cr-modal-title"></div>
+          <span class="cr-modal-close" onclick="closeCrModal()">✕</span>
+        </div>
+        <div class="cr-modal-preview">
+          <div class="cr-prev-icon">🖼️</div>
+          <div class="cr-prev-txt">소재 미리보기</div>
+          <div class="cr-prev-sub">업데이트 예정</div>
+        </div>
+        <div class="cr-modal-meta" id="cr-modal-meta"></div>
+      </div>
+    </div>
 
   </main>
 </div>
@@ -513,12 +544,12 @@ const SOGE_CR = [
   { type:'효과·성능',     color:'#15803D', td:'"PDRN 탄력 패치 — 7일 변화"',       img:'비포&애프터 분할컷',        comp:'PDRN랩' },
   { type:'성분 강조',     color:'#1D4ED8', td:'"PDRN·콜라겐 고함량 성분"',         img:'성분 클로즈업 + 함량 그래프', comp:'뷰티스킨랩' },
 ];
-document.getElementById('soge-cr-grid').innerHTML = SOGE_CR.map(c => `
-  <div class="soge-cr">
+document.getElementById('soge-cr-grid').innerHTML = SOGE_CR.map((c, i) => `
+  <div class="soge-cr clickable" onclick="openCrModal(${i})">
     <span class="soge-cr-type" style="background:${c.color};">${c.type}</span>
     <div class="soge-cr-td">${c.td}</div>
     <div class="soge-cr-img">🖼️ <b>이미지</b> ${c.img}</div>
-    <div class="soge-cr-comp">▸ ${c.comp}</div>
+    <div class="soge-cr-comp">▸ ${c.comp} · 클릭하여 소재 보기</div>
   </div>`).join('');
 
 // ===== 브랜드 필터 — 하단 전 섹션 갱신 =====
@@ -533,6 +564,17 @@ function setCompBrand(b, el) {
   renderScrub();
 }
 renderCompKpi();
+
+// ===== 소재 미리보기 모달 =====
+function openCrModal(i) {
+  const c = SOGE_CR[i];
+  document.getElementById('cr-modal-title').innerHTML =
+    `<span class="soge-cr-type" style="background:${c.color};margin-bottom:0;">${c.type}</span>`;
+  document.getElementById('cr-modal-meta').innerHTML =
+    `<div><b>T&D</b>${c.td}</div><div><b>이미지</b>${c.img}</div><div><b>경쟁사</b>${c.comp}</div>`;
+  document.getElementById('cr-modal').classList.add('on');
+}
+function closeCrModal() { document.getElementById('cr-modal').classList.remove('on'); }
 </script>
 
 </body>
