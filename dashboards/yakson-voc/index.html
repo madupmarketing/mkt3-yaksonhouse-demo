@@ -162,7 +162,7 @@
 
     <!-- ===================== 별점 트렌드 영역 ===================== -->
     <div class="area-head">
-      <span class="area-title">⭐ 별점 트렌드</span>
+      <span class="area-title">별점 트렌드</span>
       <span class="area-ctx" id="trend-ctx"></span>
     </div>
     <div class="two-col" style="grid-template-columns:2.3fr 1fr;align-items:stretch;margin-bottom:32px;">
@@ -187,7 +187,7 @@
 
     <!-- ===================== 리뷰 영역 ===================== -->
     <div class="area-head">
-      <span class="area-title">💬 리뷰</span>
+      <span class="area-title">리뷰</span>
       <span class="area-ctx" id="review-ctx"></span>
     </div>
 
@@ -246,7 +246,7 @@
 
     <!-- ===================== 제품별 유튜브 트렌드 (최하단) ===================== -->
     <div class="area-head">
-      <span class="area-title">📺 제품별 유튜브 트렌드</span>
+      <span class="area-title">제품별 유튜브 트렌드</span>
       <span class="area-ctx">대표 키워드 인기 영상 Top 3 · 조회수 기준</span>
     </div>
     <div class="filter-bar" style="margin-bottom:16px;">
@@ -588,7 +588,7 @@ let curYt = '리프팅밴드';
 function renderYt() {
   const kws = YT_KW[curYt] || [];
   document.getElementById('yt-kw-summary').innerHTML =
-    '<span class="yt-kw-lab">🔑 영상 속 자주 언급 키워드 <span style="color:#999;font-weight:600;">(대표 키워드 제외)</span></span>'
+    '<span class="yt-kw-lab">트렌드 키워드 <span style="color:#999;font-weight:600;">(대표 키워드 제외)</span></span>'
     + kws.map((k, i) => `<span class="yt-kw-pill"><span class="yt-kw-rank">${i + 1}</span>${k[0]}<span class="yt-kw-cnt">${k[1]}</span></span>`).join('');
   document.getElementById('yt-grid').innerHTML = YT[curYt].map((v, i) => `
     <div class="yt-card">

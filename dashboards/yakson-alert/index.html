@@ -202,7 +202,7 @@
     <!-- 매체별 부정 코멘트 관리 -->
     <div class="table-card">
       <div class="section-title">
-        🚨 DA 소재 부정 댓글 감지
+        DA 소재 부정 댓글 감지
         <span class="section-title-sub">집행 중인 디스플레이·영상·피드 광고 소재 댓글 실시간 감지 · 유형 분류 · 숨김 검토 후보</span>
       </div>
       <div class="cmtcat-wrap">
@@ -230,7 +230,6 @@
 const ADCMT = [
   { plat:'Meta',      platColor:'#1877F2', ad:'META 협력광고 · 올리리라밴드',  text:'광고에서 본 만큼 효과를 느끼긴 어려웠어요. 조금 아쉽네요.', author:'jih****',  time:'2026-06-14 09:12', likes:8,  tag:'효과 불만',   sev:'mid'  },
   { plat:'Instagram', platColor:'#E1306C', ad:'인스타 릴스 · 리프팅밴드 PRO',  text:'오히려 효과가 반대라는 후기를 봤는데 사실인지 궁금해요.',   author:'sk_****',  time:'2026-06-14 08:40', likes:14, tag:'허위성 주장', sev:'high' },
-  { plat:'네이버 GFA', platColor:'#03C75A', ad:'GFA · 올리리라밴드',           text:'배송이 예상보다 많이 늦어서 조금 아쉬웠어요.',           author:'rkd****',  time:'2026-06-13 18:22', likes:5,  tag:'배송 지연',   sev:'mid'  },
   { plat:'YouTube',   platColor:'#FF0000', ad:'유튜브 범퍼 · 골기 페이스 스톤',   text:'가격대가 다소 부담스럽게 느껴져요.',                     author:'구독****', time:'2026-06-13 21:05', likes:3,  tag:'가격 부담',   sev:'mid'  },
   { plat:'Meta',      platColor:'#1877F2', ad:'META 리타겟팅 · 재구매',    text:'환불 안내가 명확하지 않아 진행이 조금 헷갈렸어요.',       author:'min****',  time:'2026-06-13 15:10', likes:11, tag:'CS 안내',     sev:'mid'  },
 ];
@@ -257,7 +256,6 @@ document.getElementById('adcmt-list').innerHTML = ADCMT.map(c => {
 const CREATIVE = [
   { plat:'Instagram', platColor:'#E1306C', name:'인스타 릴스 · 리프팅밴드 PRO',   n:28, type:'허위성 주장', sev:'high', trend:'▲ +9' },
   { plat:'Meta',      platColor:'#1877F2', name:'META 협력광고 · 올리리라밴드',   n:21, type:'효과 불만',  sev:'mid',  trend:'▲ +4' },
-  { plat:'네이버 GFA', platColor:'#03C75A', name:'GFA · 올리리라밴드',            n:18, type:'배송 지연',  sev:'mid',  trend:'▼ -2' },
   { plat:'YouTube',   platColor:'#FF0000', name:'유튜브 범퍼 · 골기 페이스 스톤',  n:16, type:'가격 부담',  sev:'mid',  trend:'▲ +3' },
   { plat:'Meta',      platColor:'#1877F2', name:'META 리타겟팅 · 재구매 소재',     n:15, type:'CS 안내',   sev:'low',  trend:'▲ +1' },
 ];
