@@ -6,35 +6,39 @@
 <title>약손명가헬스케어 · 제품 분석</title>
 <link rel="stylesheet" href="../_assets/dashboard.css">
 <style>
-  /* ===== 교차구매 추천 라인업 (크로스셀 지수 랭킹) ===== */
-  .xrank { display:flex; flex-direction:column; gap:10px; }
-  .xrank-row { position:relative; display:flex; align-items:center; gap:16px; background:#FFF; border:1px solid #EEE; border-radius:12px; padding:15px 18px; transition:transform .18s, box-shadow .18s, border-color .18s; }
-  .xrank-row:hover { border-color:#D8404D; box-shadow:0 6px 18px rgba(0,0,0,.06); transform:translateY(-2px); z-index:30; }
-  .xrank-row.top { border-color:#F3C6CB; background:linear-gradient(180deg,#FFF7F8,#FFF); }
-  .xrank-no { width:28px; height:28px; flex:none; border-radius:50%; background:#ECECEC; color:#6B6B6B; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; }
-  .xrank-row.top .xrank-no { background:#D8404D; color:#FFF; }
-  .xrank-body { flex:1; min-width:0; }
-  .xrank-combo { font-size:13.5px; font-weight:800; color:#1A1A1A; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-  .xrank-combo .xplus { color:#C4C4C4; font-weight:700; margin:0 3px; }
-  .xdot { width:8px; height:8px; border-radius:50%; display:inline-block; flex:none; }
-  /* 호버 시 근거(유입·구매 볼륨 + 최근 구매 추이) 팝오버 — 아래 박스를 덮고 표시 */
-  .xrank-evi { position:absolute; left:58px; top:calc(100% - 4px); z-index:40; background:#1A1A1A; color:#EDEDED;
-    border-radius:12px; padding:13px 16px; box-shadow:0 14px 34px rgba(0,0,0,.26); opacity:0; transform:translateY(-5px);
-    pointer-events:none; transition:opacity .18s ease, transform .18s ease; }
-  /* 마지막 2개 행은 위로 펼쳐 잘림 방지 */
-  .xrank-row:nth-last-child(-n+2) .xrank-evi { top:auto; bottom:calc(100% - 4px); transform:translateY(5px); }
-  .evi-row { font-size:11.5px; font-weight:600; white-space:nowrap; margin-bottom:11px; }
+  /* ===== 교차구매 추천 라인업 (크로스셀 카드 — 좌→우 가로 나열) ===== */
+  .xrank { display:grid; grid-template-columns:repeat(auto-fit, minmax(194px, 1fr)); gap:14px; }
+  .xcard { position:relative; display:flex; flex-direction:column; background:#FFF; border:1px solid #EEE; border-radius:14px; padding:16px 14px 15px; transition:transform .18s, box-shadow .18s, border-color .18s; }
+  .xcard:hover { border-color:#D8404D; box-shadow:0 10px 26px rgba(216,64,77,.12); transform:translateY(-3px); z-index:30; }
+  .xcard.top { border-color:#F3C6CB; background:linear-gradient(180deg,#FFF7F8,#FFF); }
+  .xcard-no { position:absolute; top:12px; left:12px; z-index:3; width:26px; height:26px; border-radius:50%; background:#ECECEC; color:#6B6B6B; font-size:12.5px; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.10); }
+  .xcard.top .xcard-no { background:#D8404D; color:#FFF; }
+  /* 대형 제품 이미지 2개 + 중앙 × */
+  .xcard-imgs { position:relative; display:flex; align-items:center; justify-content:center; gap:8px; padding-top:4px; margin-bottom:13px; }
+  .xcard-img { width:48%; aspect-ratio:4/5; object-fit:cover; border-radius:11px; border:1px solid #EFEFEF; background:#F7F7F7; }
+  .xcard-x { position:absolute; left:50%; top:53%; transform:translate(-50%,-50%); font-size:40px; font-weight:800; color:#D8404D; opacity:.5; z-index:2; pointer-events:none; text-shadow:0 2px 12px rgba(255,255,255,.75); }
+  /* 조합 라벨 (소형 썸네일 + 제품명) */
+  .xcard-combo { display:flex; align-items:center; gap:5px; flex-wrap:wrap; font-size:11.5px; font-weight:700; color:#1A1A1A; line-height:1.35; margin-bottom:13px; }
+  .xcard-combo .xplus { color:#C4C4C4; font-weight:700; }
+  /* 점수 바 + 지수 */
+  .xcard-score { display:flex; align-items:center; gap:10px; margin-top:auto; }
+  .xcard-bar { flex:1; height:7px; background:#F0F0F0; border-radius:4px; overflow:hidden; }
+  .xcard-bar > i { display:block; height:100%; background:linear-gradient(90deg,#F5A0A8,#D8404D); border-radius:4px; }
+  .xcard-idx { font-size:20px; font-weight:800; color:#D8404D; min-width:30px; text-align:right; }
+  /* 호버 시 근거(유입·구매 볼륨 + 최근 구매 추이) 팝오버 — 카드 아래 중앙, 가장자리 카드는 안쪽 앵커 */
+  .xrank-evi { position:absolute; left:50%; margin-left:-139px; top:calc(100% + 8px); z-index:40; width:278px;
+    background:#1A1A1A; color:#EDEDED; border-radius:12px; padding:13px 15px; box-shadow:0 14px 34px rgba(0,0,0,.26);
+    opacity:0; transform:translateY(-5px); pointer-events:none; transition:opacity .18s ease, transform .18s ease; }
+  .xcard:first-child .xrank-evi { left:0; margin-left:0; }
+  .xcard:last-child .xrank-evi { left:auto; right:0; margin-left:0; }
+  .xcard:hover .xrank-evi { opacity:1; transform:translateY(0); }
+  .evi-row { font-size:11.5px; font-weight:600; line-height:1.5; margin-bottom:10px; }
   .evi-row b { color:#FFD93D; font-weight:800; }
   .evi-row .sep { color:#5A5A5A; margin:0 8px; }
   .evi-trend-top { display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:6px; }
   .evi-trend-lab { font-size:10px; color:#B0B0B0; font-weight:600; }
   .evi-up { font-size:10.5px; font-weight:800; color:#34D399; }
   .evi-spark { display:block; }
-  .xrank-row:hover .xrank-evi { opacity:1; transform:translateY(0); }
-  .xrank-score { display:flex; align-items:center; gap:11px; flex:none; width:170px; }
-  .xrank-bar { flex:1; height:7px; background:#F0F0F0; border-radius:4px; overflow:hidden; }
-  .xrank-bar > i { display:block; height:100%; background:linear-gradient(90deg,#F5A0A8,#D8404D); border-radius:4px; }
-  .xrank-idx { font-size:15px; font-weight:800; color:#D8404D; width:30px; text-align:right; }
 
   /* ===== 브랜드 섹션 ===== */
   .brand-section { margin-bottom: 28px; }
@@ -382,18 +386,21 @@ function renderCross() {
     sArea += ` L ${sW} ${sH} Z`;
     const sDots = arr.map((v, k) => `<circle cx="${xx(k).toFixed(1)}" cy="${yy(v).toFixed(1)}" r="${k === n8 - 1 ? 2.8 : 1.7}" fill="${k === n8 - 1 ? '#FFD93D' : '#F5A0A8'}"/>`).join('');
     const sSvg = `<svg class="evi-spark" viewBox="0 0 ${sW} ${sH}" width="${sW}" height="${sH}"><path d="${sArea}" fill="rgba(245,160,168,0.16)"/><path d="${sLine}" fill="none" stroke="#F5A0A8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${sDots}</svg>`;
-    return `<div class="xrank-row${i === 0 ? ' top' : ''}">
-      <div class="xrank-no">${i + 1}</div>
-      <div class="xrank-body">
-        <div class="xrank-combo">
-          <img class="xthumb" src="../_assets/products/${first.img}.jpg" alt="${first.name}" loading="lazy">${first.name}
-          <span class="xplus">×</span>
-          <img class="xthumb" src="../_assets/products/${second.img}.jpg" alt="${second.name}" loading="lazy">${second.name}
-        </div>
+    return `<div class="xcard${i === 0 ? ' top' : ''}">
+      <div class="xcard-no">${i + 1}</div>
+      <div class="xcard-imgs">
+        <img class="xcard-img" src="../_assets/products/${first.img}.jpg" alt="${first.name}" loading="lazy">
+        <span class="xcard-x">×</span>
+        <img class="xcard-img" src="../_assets/products/${second.img}.jpg" alt="${second.name}" loading="lazy">
       </div>
-      <div class="xrank-score">
-        <div class="xrank-bar"><i style="width:${Math.min(idx, 100)}%;"></i></div>
-        <div class="xrank-idx">${idx}</div>
+      <div class="xcard-combo">
+        <img class="xthumb" src="../_assets/products/${first.img}.jpg" alt="${first.name}" loading="lazy">${first.name}
+        <span class="xplus">×</span>
+        <img class="xthumb" src="../_assets/products/${second.img}.jpg" alt="${second.name}" loading="lazy">${second.name}
+      </div>
+      <div class="xcard-score">
+        <div class="xcard-bar"><i style="width:${Math.min(idx, 100)}%;"></i></div>
+        <div class="xcard-idx">${idx}</div>
       </div>
       <div class="xrank-evi">
         <div class="evi-row">🔁 교차 유입률 <b>${attach}%</b><span class="sep">·</span>🛒 90일 동시구매 <b>${coBuy.toLocaleString()}건</b><span class="sep">·</span>👀 함께 조회 <b>${coView}%</b></div>
