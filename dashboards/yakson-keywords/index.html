@@ -14,8 +14,10 @@
   .cap-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:32px; align-items:stretch; }
   /* 실제 지면 캡처 — 카드 크기 통일(고정 이미지 영역) + contain 가운데 정렬(여백 허용) */
   .cap-shot-wrap { background:#FFFFFF; border-top:1px solid #F0F0F0; }
-  /* 모든 캡처 동일 크기·좌표 — 가로 폭 채워 늘림(약간의 왜곡 허용) */
+  /* 쇼핑검색: 가로 폭 채움(현행 유지) / 파워링크: 왜곡 없이 동일 영역에 축소(가운데 정렬, 좌우 여백 허용) */
   .cap-shot { width:100%; height:158px; display:block; object-fit:fill; }
+  .cap-card.cap-pl .cap-shot-wrap { padding:6px 0; }
+  .cap-card.cap-pl .cap-shot { height:146px; object-fit:contain; }
   .cap-shot-wrap.noimg { min-height:158px; display:flex; align-items:center; justify-content:center; }
   .cap-shot-wrap.noimg::after { content:'캡처 준비중'; color:#B8B8B8; font-size:12px; font-weight:600; }
   .cap-kw-sm { font-size:11px; font-weight:800; color:#1A1A1A; }
@@ -113,7 +115,9 @@
   .soge-fill { height:100%; border-radius:6px; }
   .soge-val { font-size:11.5px; font-weight:800; color:#1A1A1A; width:80px; text-align:right; flex:none; }
   .soge-val span { color:#999; font-weight:600; font-size:10.5px; }
-  .soge-insight .ins-row { display:flex; gap:9px; padding:9px 0; border-bottom:1px solid #F5F5F5; font-size:12px; color:#444; line-height:1.6; }
+  .soge-insight { display:flex; flex-direction:column; justify-content:space-evenly; flex:1; }
+  .soge-insight .ins-row { display:flex; gap:11px; padding:14px 2px; border-bottom:1px solid #F2F2F2; font-size:13.5px; color:#3A3A3A; line-height:1.72; }
+  .soge-insight .ins-row span:first-child { font-size:17px; flex-shrink:0; }
   .soge-insight .ins-row:last-child { border-bottom:none; }
   .soge-insight b { color:#1A1A1A; }
   .soge-cr-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
@@ -246,7 +250,7 @@
         <div class="section-title">소구 유형 분포<span class="section-title-sub">경쟁사 소재 36건 분류</span></div>
         <div id="soge-dist"></div>
       </div>
-      <div class="chart-card" style="margin-bottom:0;">
+      <div class="chart-card" style="margin-bottom:0;display:flex;flex-direction:column;">
         <div class="section-title">소재 트렌드 요약<span class="section-title-sub">T&amp;D·이미지 활용 트렌드</span></div>
         <div class="soge-insight" id="soge-insight"></div>
       </div>
@@ -454,7 +458,7 @@ function capCard(c, planeLabel, bodyHtml) {
 }
 // 실제 지면 캡처를 그대로 표시(각 지면 구성요소 보존), 크기만 2열로 축소
 function capShot(c, plane) {
-  return `<div class="cap-card">
+  return `<div class="cap-card ${plane === '파워링크' ? 'cap-pl' : 'cap-sh'}">
     <div class="cap-head">
       <div class="cap-meta"><span class="cap-plane-tag">${plane}</span><span class="cap-kw-sm">🔍 ${c.kw}</span><span>· 📸 캡처 ${c.time}</span><span>· ${c.device}</span></div>
     </div>
@@ -511,32 +515,32 @@ const SOGE_DIST = [
   { type:'디자인·패키지', pct:3,  n:1,  color:'#9CA3AF' },
 ];
 const SOGE_INSIGHT = [
-  ['📝',"<b>T&D 트렌드</b> — 제목·설명은 '최저가·할인'(38%) 중심, '1+1·증정' 프로모션(17%) 빈번. 가격 소구 과열."],
-  ['🖼️',"<b>이미지 트렌드</b> — 제품 단독컷 + 대형 가격 배지 + '특가·한정' 라벨이 주류."],
-  ['🎯',"<b>자사 권고</b> — '효과·내구성·리뷰 1만+' 신뢰 소구로 차별화, 가격 경쟁 회피·프리미엄 포지션 유지 (제안)."],
+  ['🎬',"<b>이미지&영상 내용</b> — 제품 단독컷 + 대형 가격 배지가 기본, 비포&애프터 분할컷·짧은 시연 영상 혼용. '특가·한정수량' 라벨을 상단에 오버레이하는 패턴이 주류."],
+  ['📝',"<b>T&D 내용</b> — 제목·설명이 '최저가·할인'(38%)·'1+1·증정'(17%) 가격·프로모션 카피로 과열. 효과·성분 키워드는 보조 문구로만 등장하며 차별화 메시지는 희박."],
+  ['🧩',"<b>레이아웃 구성</b> — 최상단 대형 가격 강조 → 중앙 제품 비주얼 → 하단 혜택 뱃지(무료배송·당일발송·1+1) 가로 나열형이 표준 골격. 정보 밀도 높고 여백은 거의 없음."],
 ];
 const SOGE_TYPE_INSIGHT = {
-  '가격·할인':     [['📝',"<b>T&D</b> — '최저가·단독특가' 가격 소구 중심 + 대형 빨강 가격 배지."],['🎯',"<b>자사 권고</b> — 가격 경쟁 회피, 효과·신뢰 프리미엄 포지션 유지 (제안)."]],
-  '효과·성능':     [['📝',"<b>T&D</b> — '7일 변화·탄력' 효과 수치 소구, 비포&애프터 이미지."],['🎯',"<b>자사 권고</b> — 기간·조건 명시한 임상 근거로 신뢰 강화 (제안)."]],
-  '프로모션':       [['📝',"<b>T&D</b> — '1+1·사은품 증정' 번들 소구, 묶음컷·증정 스티커."],['🎯',"<b>자사 권고</b> — 세트 구성·가치 차별화로 단순 1+1 경쟁 탈피 (제안)."]],
-  '성분 강조':     [['📝',"<b>T&D</b> — 'PDRN·콜라겐 고함량' 성분 소구, 성분 클로즈업·함량 그래프."],['🎯',"<b>자사 권고</b> — 함량 수치·성분 신뢰로 차별화 (제안)."]],
-  '신뢰·리뷰':     [['📝',"<b>T&D</b> — '리뷰 1만+·실사용 후기' 신뢰 소구, 별점·리뷰 캡처."],['🎯',"<b>자사 권고</b> — 정품·누적 리뷰 전면 배치로 신뢰 우위 (제안)."]],
-  '디자인·패키지': [['📝',"<b>T&D</b> — '고급 패키지·기프트' 선물 수요 소구, 패키지 컷."],['🎯',"<b>자사 권고</b> — 프리미엄 패키지·기프트 라인으로 선물 시장 공략 (제안)."]],
+  '가격·할인':     [['🎬',"<b>이미지&영상 내용</b> — 제품 단독컷 + 빨강 대형 가격 배지, '특가·한정수량' 라벨을 강하게 오버레이."],['📝',"<b>T&D 내용</b> — '최저가·단독특가·오늘만' 가격 직접 소구 카피가 제목·설명 전면을 차지."],['🧩',"<b>레이아웃 구성</b> — 가격을 최상단 대형으로 배치, 혜택 뱃지(무료배송·1+1)를 하단에 가로 나열."]],
+  '효과·성능':     [['🎬',"<b>이미지&영상 내용</b> — 비포&애프터 좌우 분할컷과 7일 변화 타임랩스 영상이 핵심 비주얼."],['📝',"<b>T&D 내용</b> — '7일 변화·턱선 리프팅·탄력' 효과 수치와 기간을 명시한 카피 중심."],['🧩',"<b>레이아웃 구성</b> — 전/후 좌우 분할 + 변화 수치 오버레이를 화면 중앙에 강조 배치."]],
+  '프로모션':       [['🎬',"<b>이미지&영상 내용</b> — 2개 묶음컷 + '1+1·사은품' 증정 스티커, 한정 타이머 비주얼 동반."],['📝',"<b>T&D 내용</b> — '1+1·사은품 증정·세트 할인' 번들 혜택 카피에 집중."],['🧩',"<b>레이아웃 구성</b> — 묶음 구성 비주얼과 증정품 썸네일을 병렬로 배치해 가치 강조."]],
+  '성분 강조':     [['🎬',"<b>이미지&영상 내용</b> — 성분 클로즈업·캡슐/앰플 컷에 함량 그래프 인서트를 결합."],['📝',"<b>T&D 내용</b> — 'PDRN·콜라겐 고함량' 성분명과 함량 수치를 직접 노출하는 카피."],['🧩',"<b>레이아웃 구성</b> — 성분 아이콘 + 함량 바 그래프를 중심에 둔 정보형 구성."]],
+  '신뢰·리뷰':     [['🎬',"<b>이미지&영상 내용</b> — 리뷰 캡처·별점 모음과 실사용 후기 영상으로 신뢰 비주얼 구성."],['📝',"<b>T&D 내용</b> — '리뷰 1만+·재구매율·만족도' 등 신뢰 지표를 전면에 내세운 카피."],['🧩',"<b>레이아웃 구성</b> — 별점·리뷰 수를 상단 배지로, 후기 인용을 카드형으로 나열."]],
+  '디자인·패키지': [['🎬',"<b>이미지&영상 내용</b> — 고급 패키지 풀컷·언박싱 영상과 선물 연출컷이 주류."],['📝',"<b>T&D 내용</b> — '고급 패키지·선물용·기프트 에디션' 프리미엄 카피 중심."],['🧩',"<b>레이아웃 구성</b> — 패키지 비주얼을 풀컷으로 크게 두고 미니멀 텍스트로 여백을 살림."]],
 };
 // 브랜드별 검색광고 소구 분포·요약
 const BRAND_SOGE_OVERRIDE = {
   yakson: { dist:[
       { type:'가격·할인', pct:41, n:7, color:'#DC2626' }, { type:'효과·성능', pct:29, n:5, color:'#15803D' },
       { type:'성분 강조', pct:18, n:3, color:'#1D4ED8' }, { type:'프로모션', pct:12, n:2, color:'#F59E0B' } ],
-    insight:[['📝',"<b>T&D</b> — 리프팅밴드·패치 경쟁사가 '최저가·PDRN 성분' 가격·성분 소구 집중."],['🖼️',"<b>이미지</b> — 제품 단독컷 + 가격 배지 + 성분 함량 표기 주류."],['🎯',"<b>자사 권고</b> — 임상·내구성·리뷰 1만+ 신뢰로 가격 경쟁 회피 (제안)."]] },
+    insight:[['🎬',"<b>이미지&영상 내용</b> — 리프팅밴드·패치 제품컷 + 가격 배지, PDRN 성분 클로즈업이 주류."],['📝',"<b>T&D 내용</b> — '최저가·PDRN 성분·고함량' 가격과 성분 소구에 집중."],['🧩',"<b>레이아웃 구성</b> — 가격을 상단에 강조하고 성분 함량 뱃지를 하단에 배치하는 골격."]] },
   ollira: { dist:[
       { type:'효과·성능', pct:38, n:5, color:'#15803D' }, { type:'프로모션', pct:23, n:3, color:'#F59E0B' },
       { type:'가격·할인', pct:23, n:3, color:'#DC2626' }, { type:'신뢰·리뷰', pct:16, n:2, color:'#7C3AED' } ],
-    insight:[['📝',"<b>T&D</b> — 브이라인·경락 디바이스 경쟁사가 'EMS 효과·N분 케어' 기능 소구 + 할인."],['🖼️',"<b>이미지</b> — 디바이스 시연·전후 비교컷, '누적 판매량' 강조."],['🎯',"<b>자사 권고</b> — 임상 효과·안전성·정품 보증으로 차별화 (제안)."]] },
+    insight:[['🎬',"<b>이미지&영상 내용</b> — EMS 디바이스 시연 영상 + 전후 윤곽 비교컷, '누적 판매량' 강조컷."],['📝',"<b>T&D 내용</b> — 'EMS 효과·N분 케어·누적 판매량' 기능과 실적 중심 카피."],['🧩',"<b>레이아웃 구성</b> — 디바이스 비주얼 + 사용 단계 슬라이드형 구성으로 기능 설명."]] },
   golgi: { dist:[
       { type:'가격·할인', pct:33, n:2, color:'#DC2626' }, { type:'디자인·패키지', pct:33, n:2, color:'#9CA3AF' },
       { type:'효과·성능', pct:17, n:1, color:'#15803D' }, { type:'프로모션', pct:17, n:1, color:'#F59E0B' } ],
-    insight:[['📝',"<b>T&D</b> — 광대 마사지·괄사 경쟁사가 '가격·선물 패키지' 가성비·기프트 소구."],['🖼️',"<b>이미지</b> — 패키지컷·괄사 시연, 사은품 강조."],['🎯',"<b>자사 권고</b> — 프리미엄 패키지·선물 포지션으로 가성비 경쟁 탈피 (제안)."]] },
+    insight:[['🎬',"<b>이미지&영상 내용</b> — 괄사·광대 마사지 시연과 패키지/사은품 컷이 혼재."],['📝',"<b>T&D 내용</b> — '가격·선물 패키지·가성비' 가격과 기프트 소구가 중심."],['🧩',"<b>레이아웃 구성</b> — 패키지 비주얼 + 가격/사은품 뱃지를 병렬로 배치."]] },
 };
 const sogeData = () => curCompBrand === 'all' ? { dist:SOGE_DIST, insight:SOGE_INSIGHT } : BRAND_SOGE_OVERRIDE[curCompBrand];
 let curSogeType = '전체';
