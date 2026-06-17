@@ -44,26 +44,38 @@
   .pl-tt span { font-size:9px; color:#777; font-weight:600; display:block; margin-top:3px; line-height:1.2; }
   .own-flag { font-size:9px; font-weight:800; color:#fff; background:#DC2626; border-radius:5px; padding:1px 6px; }
 
-  /* ===== 쇼핑검색 상품 광고 ===== */
-  .sh-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding-top:6px; }
-  .sh-card { border:1px solid #EEE; border-radius:9px; padding:8px; position:relative; }
-  .sh-card.flag { border:1.5px solid #F3C6CB; background:#FFF7F8; }
-  .sh-img { height:78px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:30px; }
-  .sh-adtag { position:absolute; top:11px; left:11px; font-size:8.5px; font-weight:800; color:#555; background:rgba(255,255,255,.9); border:1px solid #DDD; border-radius:4px; padding:0 4px; }
-  .sh-mall { font-size:9.5px; color:#888; margin-top:6px; font-weight:600; }
-  .sh-name { font-size:11.5px; color:#1A1A1A; font-weight:600; line-height:1.3; margin-top:2px; min-height:30px; }
-  .sh-price { font-size:14px; font-weight:800; color:#1A1A1A; margin-top:3px; }
-  .sh-rate { font-size:10px; color:#F5B301; font-weight:700; margin-top:2px; }
-  .sh-rate span { color:#999; font-weight:600; }
+  /* ===== 쇼핑검색 상품 광고 (네이버 쇼핑 지면 재현 — 가로형) ===== */
+  .shop-ad { display:flex; gap:14px; align-items:flex-start; padding:14px 2px; }
+  .shop-thumb { width:92px; height:92px; flex:none; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:38px; position:relative; }
+  .shop-thumb-badge { position:absolute; top:5px; left:5px; font-size:8.5px; font-weight:800; color:#fff; background:rgba(0,0,0,.55); border-radius:4px; padding:1px 5px; }
+  .shop-body { flex:1; min-width:0; }
+  .shop-promo { font-size:11.5px; font-weight:700; color:#E24A5B; margin-bottom:3px; }
+  .shop-title { font-size:13.5px; font-weight:700; color:#1A1A1A; line-height:1.4; }
+  .shop-price-row { display:flex; align-items:center; gap:7px; margin-top:5px; flex-wrap:wrap; }
+  .shop-adtag { font-size:9px; color:#888; border:1px solid #D8D8D8; border-radius:3px; padding:0 4px; font-weight:700; }
+  .shop-price { font-size:16px; font-weight:800; color:#1A1A1A; }
+  .shop-price i { font-size:11px; font-weight:600; font-style:normal; margin-left:1px; }
+  .shop-ship { font-size:10.5px; color:#888; font-weight:600; }
+  .shop-sub { font-size:10.5px; color:#1EA362; font-weight:600; margin-top:4px; }
+  .shop-cat { font-size:10.5px; color:#999; margin-top:6px; }
+  .shop-attrs { font-size:10px; color:#888; margin-top:4px; line-height:1.5; }
+  .shop-meta { font-size:10px; color:#AAA; margin-top:6px; font-weight:600; }
+  .shop-report { color:#BBB; }
+  .shop-mall { flex:none; width:120px; border-left:1px solid #F0F0F0; padding-left:13px; align-self:stretch; }
+  .shop-mall-name { font-size:11.5px; font-weight:700; color:#333; }
+  .shop-info { font-size:9px; color:#999; border:1px solid #E0E0E0; border-radius:3px; padding:0 4px; font-weight:600; margin-left:2px; }
+  .shop-bs { font-size:10px; color:#888; margin-top:5px; font-weight:600; }
+  .shop-mall-badge { margin-top:12px; display:flex; flex-direction:column; gap:5px; align-items:flex-start; }
+  .shop-point { font-size:10px; color:#666; font-weight:600; }
 
   /* ===== 스크럽 후보 알림 ===== */
   .scrub-list { display:flex; flex-direction:column; gap:12px; }
   .scrub-item { border:1px solid #F3C6CB; border-left:4px solid #DC2626; border-radius:12px;
     padding:14px 16px; background:linear-gradient(90deg,#FFF5F6 0%,#FFF 60%);
     display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
-  .scrub-kw { flex:none; }
-  .kw-own { display:inline-block; font-size:11px; font-weight:800; color:#D8404D; background:#FFE3E6; border-radius:8px; padding:4px 11px; white-space:nowrap; }
-  .scrub-plane { font-size:9px; font-weight:800; padding:1px 7px; border-radius:5px; background:#EEF1F5; color:#566; margin-left:6px; }
+  .scrub-kw { flex:none; width:200px; display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  .kw-own { display:inline-block; font-size:11px; font-weight:800; color:#D8404D; background:#FFE3E6; border-radius:8px; padding:4px 11px; line-height:1.4; }
+  .scrub-plane { font-size:9px; font-weight:800; padding:1px 7px; border-radius:5px; background:#EEF1F5; color:#566; }
   .scrub-mid { flex:1; min-width:200px; }
   .scrub-comp { font-size:12.5px; font-weight:800; color:#1A1A1A; }
   .scrub-copy { font-size:11.5px; color:#666; margin-top:3px; }
@@ -291,21 +303,45 @@ const POWERLINK = [
 
 const SHOPPING = [
   {
-    kw: '올리리라밴드', time: '2026-06-14 10:02', device: '네이버 모바일',
+    kw: '리프팅밴드', time: '2026-06-16 10:02', device: '네이버 모바일',
     ads: [
-      { adv:'올리리라 공식', ours:true, name:'올리리라밴드 정품', price:'318,000', mall:'올리리라', rate:4.6, reviews:2730, emoji:'🎗️', color:'#EAF1FB' },
-      { adv:'끌올뷰티', flag:true, ownKw:'올리리라밴드', name:'끌어올리는 탄력밴드 1+1', price:'19,900', mall:'끌올뷰티', rate:4.1, reviews:320, emoji:'🩹', color:'#FFF0F2' },
-      { adv:'에이뷰티', name:'V라인 리프팅 밴드', price:'24,900', mall:'에이뷰티', rate:4.3, reviews:880, emoji:'💆', color:'#F0FDF4' },
-      { adv:'약손명가 공식', ours:true, name:'약손명가 리프팅밴드', price:'58,000', mall:'약손명가', rate:4.8, reviews:6420, emoji:'⭐', color:'#FFF7E6' },
+      { adv:'에르고바디', badge:'npayplus', promo:'8주동안 하루 단 15분이면 해결! 피부 탄력 개선!',
+        title:'에르고바디 사각턱이중턱 브이라인 리프팅밴드', adtag:'광고', price:'79,000', ship:'무료',
+        cat:'화장품/미용 > 뷰티소품 > 페이스소품 > 리프팅밴드',
+        meta:'리뷰 3,915 · 찜 19 · 등록일 2024.02.', mall:'에르고바디', point:'포인트 최대 1%',
+        emoji:'💆‍♀️', color:'#F3E8FF' },
     ],
   },
   {
-    kw: '괄사', time: '2026-06-13 21:14', device: '네이버 모바일',
+    kw: '리프팅패치', time: '2026-06-16 09:58', device: '네이버 모바일',
     ads: [
-      { adv:'골기 공식', ours:true, name:'골기 페이스 스톤', price:'78,000', mall:'골기', rate:4.5, reviews:955, emoji:'🪨', color:'#FBF3DC' },
-      { adv:'르마하', flag:true, ownKw:'골기 괄사', name:'르마하 반지 괄사 마사지', price:'29,000', mall:'르마하', rate:4.3, reviews:4300, emoji:'💍', color:'#F2F2F2' },
-      { adv:'유유존', name:'로즈쿼츠 괄사 스톤', price:'34,000', mall:'유유존', rate:4.2, reviews:2900, emoji:'💗', color:'#FCEDF2' },
-      { adv:'골기 공식', ours:true, name:'골기 바디 스톤', price:'73,000', mall:'골기', rate:4.4, reviews:540, emoji:'🟡', color:'#FBF3DC' },
+      { adv:'바이오힐보 BOH', badge:'npayplus', promo:'멤버십 10% 적립', brandstore:true,
+        title:'바이오힐보 프로바이오덤 콜라겐 PDRN 아이백&미간 리프팅 패치 6,800샷', adtag:'광고+', price:'14,900', ship:'무료',
+        sub:'멤버십 시작 시 최대 2,235원 적립 · 🟢 내일배송 6.18.(목) 도착',
+        cat:'화장품/미용 > 마스크/팩 > 패치',
+        attrs:'사용부위 페이스·아이 | 모든피부용 | 촉촉함(수분공급) | 밀착력·피부탄력·저자극 | 성분 콜라겐',
+        meta:'★4.92 (12) · 구매 65 · 찜 48 · 등록일 2026.05.', mall:'바이오힐보 BOH', point:'포인트 최대 149원', thumbBadge:'슈퍼적립',
+        emoji:'🩹', color:'#E0F2F1' },
+    ],
+  },
+  {
+    kw: '광대 마사지', time: '2026-06-15 21:40', device: '네이버 모바일',
+    ads: [
+      { adv:'미:룸', badge:'npayplus', title:'광대 축소 축소기 슬리머 마사지 리프팅 균형기', adtag:'광고', price:'69,800', ship:'3,000원',
+        cat:'화장품/미용 > 뷰티소품 > 페이스소품 > 괄사/롤링스틱',
+        attrs:'사용부위 얼굴 | 주요제품특징 편리한 사용성·가성비',
+        meta:'★4.6 (123) · 찜 571 · 등록일 2025.07.', mall:'미:룸', point:'포인트 최대 698원', thumbBadge:'구매 180+',
+        emoji:'🎧', color:'#F4F4F6' },
+    ],
+  },
+  {
+    kw: '경락 디바이스', time: '2026-06-15 18:30', device: '네이버 모바일',
+    ads: [
+      { adv:'혼바디', promo:'숨겨진 얼굴라인을 되찾는 방법, 쉽게 하는 얼굴 마사지',
+        title:'혼바디 빅롤러 EMS 고주파 경락 디바이스', adtag:'광고', price:'69,900', ship:'무료',
+        cat:'디지털/가전 > 이미용가전 > 피부케어기기',
+        meta:'리뷰 1만 · 찜 37 · 등록일 2022.12.', mall:'혼바디',
+        emoji:'💆', color:'#E0F7FA' },
     ],
   },
 ];
@@ -338,14 +374,30 @@ function plAd(a) {
     ${thumb}
   </div>`;
 }
-function shCard(a) {
-  return `<div class="sh-card${a.flag ? ' flag' : ''}">
-    <div class="sh-img" style="background:${a.color};">${a.emoji}</div>
-    <span class="sh-adtag">광고</span>
-    <div class="sh-mall">${a.mall}${a.ours ? ' · 자사' : ''} ${a.flag ? '<span class="own-flag">⚠ 자사 키워드</span>' : ''}</div>
-    <div class="sh-name">${a.name}</div>
-    <div class="sh-price">${a.price}<span style="font-size:11px;font-weight:600;">원</span></div>
-    <div class="sh-rate">★ ${a.rate.toFixed(1)} <span>(${a.reviews.toLocaleString()})</span></div>
+function shopAd(a) {
+  const badge = a.badge === 'login' ? '<span class="pl-nbadge">N 로그인</span>'
+    : a.badge === 'npay' ? '<span class="pl-nbadge pay">N pay</span>'
+    : a.badge === 'npayplus' ? '<span class="pl-nbadge pay">N pay+</span>' : '';
+  const promo = a.promo ? `<div class="shop-promo">${a.promo}</div>` : '';
+  const sub = a.sub ? `<div class="shop-sub">${a.sub}</div>` : '';
+  const attrs = a.attrs ? `<div class="shop-attrs">${a.attrs}</div>` : '';
+  const thumbBadge = a.thumbBadge ? `<span class="shop-thumb-badge">${a.thumbBadge}</span>` : '';
+  return `<div class="shop-ad">
+    <div class="shop-thumb" style="background:${a.color};">${a.emoji}${thumbBadge}</div>
+    <div class="shop-body">
+      ${promo}
+      <div class="shop-title">${a.title}</div>
+      <div class="shop-price-row"><span class="shop-adtag">${a.adtag}</span><span class="shop-price">${a.price}<i>원</i></span><span class="shop-ship">🚚 ${a.ship}</span></div>
+      ${sub}
+      <div class="shop-cat">${a.cat}</div>
+      ${attrs}
+      <div class="shop-meta">${a.meta} · <span class="shop-report">신고하기</span></div>
+    </div>
+    <div class="shop-mall">
+      <div class="shop-mall-name">${a.mall} <span class="shop-info">정보</span></div>
+      ${a.brandstore ? '<div class="shop-bs">브랜드스토어</div>' : ''}
+      <div class="shop-mall-badge">${badge}${a.point ? `<span class="shop-point">${a.point}</span>` : ''}</div>
+    </div>
   </div>`;
 }
 function capCard(c, planeLabel, bodyHtml) {
@@ -370,7 +422,7 @@ function renderGallery() {
   if (curPlane === 'powerlink') {
     grid.innerHTML = POWERLINK.map(c => capCard(c, '파워링크', c.ads.map(plAd).join(''))).join('');
   } else {
-    grid.innerHTML = SHOPPING.map(c => capCard(c, '쇼핑검색', `<div class="sh-grid">${c.ads.map(shCard).join('')}</div>`)).join('');
+    grid.innerHTML = SHOPPING.map(c => capCard(c, '쇼핑검색', c.ads.map(shopAd).join(''))).join('');
   }
 }
 function setPlane(p, el) {
