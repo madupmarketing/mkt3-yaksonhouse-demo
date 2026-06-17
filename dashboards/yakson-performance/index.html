@@ -44,12 +44,32 @@
   .metric-table th, .metric-table td { font-size:11px; padding:9px 7px; white-space:nowrap; }
   .metric-table th:first-child, .metric-table td:first-child { padding-left:14px; }
   .metric-table th:last-child, .metric-table td:last-child { padding-right:14px; }
-  /* 그룹 헤더 행 — 차원(채널/광고유형/브랜드)별 묶음 */
-  .metric-table tr.mt-grp td { background:#FAFAFA; border-top:1px solid #EFEFEF; padding:7px 14px; }
-  .mt-grp-row { display:flex; align-items:center; }
-  .mt-grp-dot { width:8px; height:8px; border-radius:2px; margin-right:8px; flex:none; }
+  /* 그룹 헤더 행 — 차원별 묶음 소계 (각 컬럼 아래 정렬·볼드) */
+  .metric-table tr.mt-grp td { background:#FAFAFA; border-top:1px solid #EFEFEF; font-weight:800; color:#1A1A1A; }
+  .mt-grp-dot { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:7px; vertical-align:middle; }
   .mt-grp-name { font-weight:800; font-size:11.5px; color:#1A1A1A; }
-  .mt-grp-agg { margin-left:auto; font-size:10.5px; color:#8A8A8A; font-weight:600; white-space:nowrap; }
+  .mt-grp-cnt { font-size:10px; color:#9A9A9A; font-weight:700; margin-left:5px; }
+
+  /* 기간 비교 버튼 + 섹션 헤더 + 증감 배지 */
+  .mix-section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:13px; }
+  .cmp-bar { display:flex; gap:6px; }
+  .cmp-btn { font-size:11px; font-weight:700; color:#6B6B6B; background:#F4F4F4; border:1px solid #ECECEC; border-radius:8px; padding:6px 12px; cursor:pointer; transition:all .15s; }
+  .cmp-btn:hover { border-color:#D8404D; color:#D8404D; }
+  .cmp-btn.on { background:#D8404D; border-color:#D8404D; color:#FFF; }
+  .mix-meta .mdelta { font-size:10px; font-weight:800; margin-left:6px; white-space:nowrap; }
+  .mdelta.up { color:#15803D; } .mdelta.down { color:#DC2626; }
+
+  /* 소재별 성과 분포도 (4분면 산점도) */
+  .quad-dot { cursor:pointer; transition:r .12s, opacity .12s; }
+  .quad-dot:hover { opacity:0.8; }
+  .crv-img { height:118px; border:1.5px dashed #E2C3C7; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#FFF7F8; color:#C98A92; font-size:12.5px; font-weight:700; margin-bottom:14px; text-align:center; }
+  .crv-name { font-size:14px; font-weight:800; color:#1A1A1A; margin-bottom:13px; line-height:1.4; display:flex; align-items:center; flex-wrap:wrap; gap:4px; }
+  .crv-quad { font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+  .crv-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+  .crv-m { background:#FAFAFA; border:1px solid #EFEFEF; border-radius:9px; padding:9px 10px; }
+  .crv-m .l { font-size:10px; color:#999; font-weight:700; }
+  .crv-m .v { font-size:14px; font-weight:800; color:#1A1A1A; margin-top:3px; }
+  .crv-empty { color:#AEAEAE; font-size:12.5px; text-align:center; padding:48px 12px; font-weight:600; line-height:1.7; }
 </style>
 </head>
 <body>
@@ -142,7 +162,26 @@
       </div>
     </div>
 
-    <div class="section-title">채널 포트폴리오</div>
+    <!-- 소재별 성과 분포도 (CTR × ROAS 4분면) -->
+    <div class="section-title" style="margin-top:4px;">소재별 성과 분포도<span class="section-title-sub">CTR(클릭 반응도) × ROAS(매출 효율) · 점을 클릭하면 소재 성과 상세</span></div>
+    <div class="two-col" style="grid-template-columns:1.7fr 1fr;align-items:stretch;margin-bottom:28px;">
+      <div class="chart-card" style="margin-bottom:0;">
+        <svg id="quad-svg" viewBox="0 0 760 430" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;"></svg>
+      </div>
+      <div class="chart-card" style="margin-bottom:0;display:flex;flex-direction:column;">
+        <div class="section-title" style="margin-bottom:12px;">소재 성과 상세<span class="section-title-sub" id="crv-detail-sub"></span></div>
+        <div id="crv-detail" style="flex:1;"></div>
+      </div>
+    </div>
+
+    <div class="mix-section-head">
+      <div class="section-title" style="margin-bottom:0;">채널 포트폴리오</div>
+      <div class="cmp-bar" id="cmp-bar">
+        <span class="cmp-btn" data-cmp="dod">전일 대비</span>
+        <span class="cmp-btn" data-cmp="wow">전주 대비</span>
+        <span class="cmp-btn on" data-cmp="mom">전월 대비</span>
+      </div>
+    </div>
     <div class="mix-dim-bar">
       <div class="mix-dim" data-dim="all">전체</div>
       <div class="mix-dim" data-dim="channel">채널</div>
@@ -196,9 +235,9 @@ const REV_ANNUAL = 124, SPEND_ANNUAL = 30;
 
 const DAILY_REV  = [5200,5400,4900,5800,6100,5600,6400,6800,6200,7100,7400,6900,7800,8200,7600,8400,8100,8900,9200,8700,9600,9100,10200,9800,10600,10100,11200,9400,10800,11000];
 const DAILY_ROAS = [502,515,508,522,518,530,525,512,535,528,540,520,545,538,525,550,542,555,548,535,560,552,565,558,570,555,568,540,562,559];
-const MONTH_LBL  = ['7월','8월','9월','10월','11월','12월','1월','2월','3월','4월','5월','6월'];
-const MONTH_REV  = [82000,88000,91000,96000,103000,99000,108000,112000,107000,118000,122000,114000];
-const MONTH_ROAS = [505,515,520,528,522,530,535,540,532,545,550,538];
+const MONTH_LBL  = ['6월','7월','8월','9월','10월','11월','12월','1월','2월','3월','4월','5월','6월'];
+const MONTH_REV  = [76000,82000,88000,91000,96000,103000,99000,108000,112000,107000,118000,122000,114000];
+const MONTH_ROAS = [500,505,515,520,528,522,530,535,540,532,545,550,538];
 
 let curBrand = '전체', curPeriod = '연간';
 const eok = (man, d) => (man / 10000).toFixed(d == null ? (man < 100000 ? 1 : 0) : d);
@@ -390,7 +429,14 @@ const DIMS = {
   brand:   { field:'brand', cats:[['전체','전체'],['약손명가','약손명가 헬스케어'],['올리리라','올리리라'],['골기','골기']], colors:{ '약손명가':'#D8404D', '올리리라':'#4A90D9', '골기':'#C9A227' } },
 };
 let curDim = 'type', curCat = '전체';
-const money = man => man >= 10000 ? (man / 10000).toFixed(2) + '억' : man.toLocaleString() + '만';
+// 기간 비교 — 스냅샷 기간(스케일) + 직전 동기 대비 증감
+const CMP = {
+  dod: { label: '전일 대비', scale: 1 / 30,  dSoje: '+2.4%', dMae: '+4.7%', dRoas: '+2.2%p' },
+  wow: { label: '전주 대비', scale: 7 / 30,  dSoje: '+1.1%', dMae: '+3.2%', dRoas: '+1.4%p' },
+  mom: { label: '전월 대비', scale: 1,       dSoje: '+1.8%', dMae: '+6.8%', dRoas: '+2.1%p' },
+};
+let curCmp = 'mom';
+const money = man => { man = Math.round(man); return man >= 10000 ? (man / 10000).toFixed(2) + '억' : man.toLocaleString() + '만'; };
 const tagHtml = t => t === 'SA' ? '<span class="tag-sa">SA</span>' : t === 'DA' ? '<span class="tag-da">DA</span>' : '<span class="tag-etc">ETC</span>';
 const catColor = (dim, cat) => cat === '전체' ? '#1A1A1A' : (DIMS[dim].colors[cat] || '#9CA3AF');
 const catLabel = (dim, cat) => { const f = DIMS[dim].cats.find(c => c[0] === cat); return f ? f[1] : cat; };
@@ -398,6 +444,7 @@ const catLabel = (dim, cat) => { const f = DIMS[dim].cats.find(c => c[0] === cat
 function renderMix() {
   const isAll = curDim === 'all';
   const D = isAll ? null : DIMS[curDim];
+  const cmp = CMP[curCmp], sc = cmp.scale;
   const selBar = document.getElementById('mix-sel-bar');
   if (isAll) {
     selBar.style.display = 'none';
@@ -437,9 +484,9 @@ function renderMix() {
       <div class="mix-pct">${(soje / TOTAL_SOJE * 100).toFixed(0)}%</div></div>
       ${barHtml}
       <div class="mix-meta">
-        <div><span class="ml">소진</span><span class="mv">${money(soje)}</span></div>
-        <div><span class="ml">매출</span><span class="mv">${money(maechul)}</span></div>
-        <div><span class="ml">평균 ROAS</span><span class="mv">${roas}%</span></div>
+        <div><span class="ml">소진</span><span class="mv">${money(soje * sc)}</span><span class="mdelta up">▲ ${cmp.dSoje}</span></div>
+        <div><span class="ml">매출</span><span class="mv">${money(maechul * sc)}</span><span class="mdelta up">▲ ${cmp.dMae}</span></div>
+        <div><span class="ml">평균 ROAS</span><span class="mv">${roas}%</span><span class="mdelta up">▲ ${cmp.dRoas}</span></div>
         <div><span class="ml">매체 수</span><span class="mv">${rows.length}개</span></div>
       </div>
     </div>`;
@@ -453,14 +500,14 @@ function renderMix() {
     const dotc = isAll ? catColor('channel', m.g) : catColor(curDim, m[D.field]);
     return `<tr>
       <td><span style="font-size:9px;color:${dotc};margin-right:5px;">●</span>${tagHtml(m.tag)} <span style="font-weight:700;color:#1A1A1A;margin-left:4px;">${m.name}</span></td>
-      <td class="right" style="color:#6B6B6B;">${money(m.soje)}</td>
-      <td class="right" style="color:#6B6B6B;">${fmtMan(m.impr)}</td>
-      <td class="right" style="color:#6B6B6B;">${fmtMan(m.clicks)}</td>
+      <td class="right" style="color:#6B6B6B;">${money(m.soje * sc)}</td>
+      <td class="right" style="color:#6B6B6B;">${fmtMan(m.impr * sc)}</td>
+      <td class="right" style="color:#6B6B6B;">${fmtMan(m.clicks * sc)}</td>
       <td class="right" style="color:#6B6B6B;">${m.ctr.toFixed(1)}%</td>
       <td class="right" style="color:#6B6B6B;">${m.cpc.toLocaleString()}</td>
-      <td class="right" style="color:#6B6B6B;">${fmtMan(m.buys)}</td>
+      <td class="right" style="color:#6B6B6B;">${fmtMan(m.buys * sc)}</td>
       <td class="right" style="color:#6B6B6B;">${m.cvr.toFixed(1)}%</td>
-      <td class="right" style="color:#1A1A1A;font-weight:700;">${money(m.maechul)}</td>
+      <td class="right" style="color:#6B6B6B;">${money(m.maechul * sc)}</td>
       <td class="right"><span class="roas-pill ${rcls}">${m.roas}%</span></td>
     </tr>`;
   };
@@ -475,13 +522,27 @@ function renderMix() {
       const grp = rows.filter(m => m[D.field] === c[0]).sort((a, b) => b.soje - a.soje);
       if (!grp.length) return '';
       const gSoje = grp.reduce((a, m) => a + m.soje, 0);
-      const gMae = grp.reduce((a, m) => a + m.maechul, 0);
+      const gImpr = grp.reduce((a, m) => a + m.impr, 0);
+      const gClk  = grp.reduce((a, m) => a + m.clicks, 0);
+      const gBuy  = grp.reduce((a, m) => a + m.buys, 0);
+      const gMae  = grp.reduce((a, m) => a + m.maechul, 0);
+      const gCtr  = gImpr ? gClk / gImpr * 100 : 0;
+      const gCpc  = gClk ? gSoje * 10000 / gClk : 0;
+      const gCvr  = gClk ? gBuy / gClk * 100 : 0;
       const gRoas = Math.round(gMae / gSoje * 100);
-      const head = `<tr class="mt-grp"><td colspan="10"><div class="mt-grp-row">
-        <span class="mt-grp-dot" style="background:${catColor(curDim, c[0])};"></span>
-        <span class="mt-grp-name">${c[1]}</span>
-        <span class="mt-grp-agg">소진 ${money(gSoje)} · 매출 ${money(gMae)} · ROAS ${gRoas}% · ${grp.length}개</span>
-      </div></td></tr>`;
+      // 소계 행 — 각 컬럼 아래 정렬, 볼드(.mt-grp td)
+      const head = `<tr class="mt-grp">
+        <td><span class="mt-grp-dot" style="background:${catColor(curDim, c[0])};"></span><span class="mt-grp-name">${c[1]}</span><span class="mt-grp-cnt">${grp.length}개</span></td>
+        <td class="right">${money(gSoje * sc)}</td>
+        <td class="right">${fmtMan(gImpr * sc)}</td>
+        <td class="right">${fmtMan(gClk * sc)}</td>
+        <td class="right">${gCtr.toFixed(1)}%</td>
+        <td class="right">${Math.round(gCpc).toLocaleString()}</td>
+        <td class="right">${fmtMan(gBuy * sc)}</td>
+        <td class="right">${gCvr.toFixed(1)}%</td>
+        <td class="right">${money(gMae * sc)}</td>
+        <td class="right">${gRoas}%</td>
+      </tr>`;
       return head + grp.map(rowHtml).join('');
     }).join('');
   }
@@ -490,6 +551,10 @@ function renderMix() {
 document.querySelectorAll('.mix-dim').forEach(el => el.addEventListener('click', function () {
   document.querySelectorAll('.mix-dim').forEach(c => c.classList.remove('on'));
   this.classList.add('on'); curDim = this.getAttribute('data-dim'); curCat = '전체'; renderMix();
+}));
+document.querySelectorAll('#cmp-bar .cmp-btn').forEach(el => el.addEventListener('click', function () {
+  document.querySelectorAll('#cmp-bar .cmp-btn').forEach(c => c.classList.remove('on'));
+  this.classList.add('on'); curCmp = this.getAttribute('data-cmp'); renderMix();
 }));
 
 // ============================================================
@@ -505,7 +570,7 @@ function renderAI() {
   const b = BRANDS[curBrand], p = PERIODS[curPeriod];
   const rev = REV_ANNUAL * b.share * p.revMul, spend = SPEND_ANNUAL * b.share * p.spendMul, roas = Math.round(b.roas + p.roasAdd);
   const fmt = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
-  const money = man => man >= 10000 ? (man / 10000).toFixed(2) + '억' : man.toLocaleString() + '만';
+  const money = man => { man = Math.round(man); return man >= 10000 ? (man / 10000).toFixed(2) + '억' : man.toLocaleString() + '만'; };
   const byRoas = MEDIA.slice().sort((x, y) => y.roas - x.roas);
   const best = byRoas[0], worst = byRoas[byRoas.length - 1];
   const byMae = MEDIA.slice().sort((x, y) => y.maechul - x.maechul)[0];
@@ -546,8 +611,112 @@ function renderAI() {
   dz.addEventListener('drop', e => { if (e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); });
 })();
 
+// ============================================================
+// 소재별 성과 분포도 — CTR × ROAS 4분면 산점도
+// 소재: 소진(만원)·CTR(%)·CPC(원)·ROAS(%) → 나머지 지표 파생
+// ============================================================
+const QAOV = 60000;
+const CRV = [
+  { name: '남편의 한마디 후기형',  soje: 200,  ctr: 2.21, cpc: 480, roas: 136 },
+  { name: '의사 직접설명 Q&A',     soje: 480,  ctr: 1.44, cpc: 430, roas: 357 },
+  { name: '30대 모공 실측 비교',    soje: 260,  ctr: 1.53, cpc: 520, roas: 123 },
+  { name: '붓기 빼는 5분 루틴',     soje: 690,  ctr: 1.07, cpc: 450, roas: 256 },
+  { name: '1주일 변화 비포애프터',  soje: 1180, ctr: 0.95, cpc: 430, roas: 278 },
+  { name: '강의형 노하우 공개',     soje: 1260, ctr: 0.97, cpc: 540, roas: 156 },
+  { name: '겨울 윤곽 리프팅밴드',   soje: 540,  ctr: 0.94, cpc: 680, roas: 179 },
+  { name: '제품 스펙 정공법',       soje: 1165, ctr: 0.93, cpc: 430, roas: 111 },
+  { name: '따뜻한 후기 인터뷰',     soje: 868,  ctr: 0.87, cpc: 680, roas: 128 },
+  { name: '캐릭터 애니 설명형',     soje: 831,  ctr: 0.53, cpc: 540, roas: 82  },
+  { name: '펀 애니 후킹형',         soje: 3730, ctr: 0.33, cpc: 680, roas: 121 },
+  { name: '정적 이미지 단순형',     soje: 1939, ctr: 0.29, cpc: 680, roas: 80  },
+];
+CRV.forEach(c => {
+  c.clicks = Math.round(c.soje * 10000 / c.cpc);
+  c.impr = Math.round(c.clicks / (c.ctr / 100));
+  c.maechul = Math.round(c.soje * c.roas / 100);
+  c.buys = Math.round(c.maechul * 10000 / QAOV);
+  c.cvr = c.clicks ? c.buys / c.clicks * 100 : 0;
+});
+const qMed = arr => { const s = arr.slice().sort((a, b) => a - b), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+const QmedCtr = qMed(CRV.map(c => c.ctr)), QmedRoas = qMed(CRV.map(c => c.roas));
+const QUAD = {
+  tl: { label: '전환 집중형',   color: '#1D4ED8' }, // 매출 효율 높음 · 클릭 반응도 낮음
+  tr: { label: '고관여 반응형', color: '#D8404D' }, // 매출 효율 높음 · 클릭 반응도 높음
+  bl: { label: '이탈·무반응형', color: '#9CA3AF' }, // 매출 효율 낮음 · 클릭 반응도 낮음
+  br: { label: '관심 유입형',   color: '#F59E0B' }, // 매출 효율 낮음 · 클릭 반응도 높음
+};
+const quadOf = c => { const hi = c.roas >= QmedRoas, hc = c.ctr >= QmedCtr; return hi ? (hc ? 'tr' : 'tl') : (hc ? 'br' : 'bl'); };
+
+const QW = 760, QH = 430, QL = 60, QR = 152, QT = 46, QB = 52;
+const Qctrs = CRV.map(c => c.ctr), Qroass = CRV.map(c => c.roas);
+const QctrMin = Math.min.apply(null, Qctrs) * 0.82, QctrMax = Math.max.apply(null, Qctrs) * 1.06;
+const QroasMin = Math.min.apply(null, Qroass) * 0.78, QroasMax = Math.max.apply(null, Qroass) * 1.08;
+const Qx = ctr => QL + (QW - QL - QR) * (ctr - QctrMin) / (QctrMax - QctrMin);
+const Qy = roas => (QH - QB) - (QH - QB - QT) * (roas - QroasMin) / (QroasMax - QroasMin);
+
+function renderQuad() {
+  const cx = Qx(QmedCtr).toFixed(1), cy = Qy(QmedRoas).toFixed(1);
+  let svg = '';
+  // 사분면 배경 틴트
+  svg += `<rect x="${QL}" y="${QT}" width="${cx - QL}" height="${cy - QT}" fill="#1D4ED8" opacity="0.04"/>`;
+  svg += `<rect x="${cx}" y="${QT}" width="${QW - QR - cx}" height="${cy - QT}" fill="#D8404D" opacity="0.05"/>`;
+  svg += `<rect x="${QL}" y="${cy}" width="${cx - QL}" height="${QH - QB - cy}" fill="#9CA3AF" opacity="0.06"/>`;
+  svg += `<rect x="${cx}" y="${cy}" width="${QW - QR - cx}" height="${QH - QB - cy}" fill="#F59E0B" opacity="0.05"/>`;
+  // 중앙값 분할선 + 축
+  svg += `<line x1="${cx}" y1="${QT}" x2="${cx}" y2="${QH - QB}" stroke="#D0D0D0" stroke-width="1" stroke-dasharray="4 3"/>`;
+  svg += `<line x1="${QL}" y1="${cy}" x2="${QW - QR}" y2="${cy}" stroke="#D0D0D0" stroke-width="1" stroke-dasharray="4 3"/>`;
+  svg += `<line x1="${QL}" y1="${QH - QB}" x2="${QW - QR}" y2="${QH - QB}" stroke="#BBB" stroke-width="1.2"/>`;
+  svg += `<line x1="${QL}" y1="${QT}" x2="${QL}" y2="${QH - QB}" stroke="#BBB" stroke-width="1.2"/>`;
+  // 축 제목
+  svg += `<text x="${QL - 4}" y="${QT - 14}" font-size="11" font-weight="800" fill="#6B6B6B">ROAS (매출 효율) ▲</text>`;
+  svg += `<text x="${QW - QR + 8}" y="${QH - QB + 4}" font-size="11" font-weight="800" fill="#6B6B6B">CTR (클릭 반응도) ▶</text>`;
+  // 사분면 라벨(코너)
+  const qlab = (qx, qy, anchor, q) => `<text x="${qx}" y="${qy}" text-anchor="${anchor}" font-size="11.5" font-weight="800" fill="${QUAD[q].color}">${QUAD[q].label}</text>`;
+  svg += qlab(QL + 7, QT + 15, 'start', 'tl');
+  svg += qlab(QW - QR - 7, QT + 15, 'end', 'tr');
+  svg += qlab(QL + 7, QH - QB - 9, 'start', 'bl');
+  svg += qlab(QW - QR - 7, QH - QB - 9, 'end', 'br');
+  // 점
+  CRV.forEach((c, i) => {
+    svg += `<circle class="quad-dot" data-i="${i}" cx="${Qx(c.ctr).toFixed(1)}" cy="${Qy(c.roas).toFixed(1)}" r="7" fill="${QUAD[quadOf(c)].color}" fill-opacity="0.7" stroke="#FFF" stroke-width="1.5"/>`;
+  });
+  const el = document.getElementById('quad-svg');
+  el.innerHTML = svg;
+  el.querySelectorAll('.quad-dot').forEach(d => d.addEventListener('click', function () { selectCreative(+this.getAttribute('data-i')); }));
+  let best = 0; CRV.forEach((c, i) => { if (c.roas > CRV[best].roas) best = i; });
+  selectCreative(best);
+}
+
+function selectCreative(i) {
+  const c = CRV[i], Q = QUAD[quadOf(c)];
+  document.querySelectorAll('#quad-svg .quad-dot').forEach(d => {
+    const on = +d.getAttribute('data-i') === i;
+    d.setAttribute('r', on ? '10' : '7');
+    d.setAttribute('stroke', on ? Q.color : '#FFF');
+    d.setAttribute('stroke-width', on ? '2.5' : '1.5');
+    d.setAttribute('fill-opacity', on ? '1' : '0.55');
+  });
+  const metric = (l, v) => `<div class="crv-m"><div class="l">${l}</div><div class="v">${v}</div></div>`;
+  const rcls = c.roas >= 300 ? 'high' : c.roas >= 150 ? 'mid' : 'low';
+  document.getElementById('crv-detail').innerHTML =
+    `<div class="crv-img">🖼️ 소재 이미지 · 업데이트 예정</div>
+     <div class="crv-name">${c.name}<span class="crv-quad" style="background:${Q.color}1A;color:${Q.color};">${Q.label}</span></div>
+     <div class="crv-metrics">
+       ${metric('소진', money(c.soje))}
+       ${metric('노출', fmtMan(c.impr))}
+       ${metric('클릭', fmtMan(c.clicks))}
+       ${metric('CTR', c.ctr.toFixed(2) + '%')}
+       ${metric('CPC', c.cpc.toLocaleString() + '원')}
+       ${metric('구매', fmtMan(c.buys))}
+       ${metric('CVR', c.cvr.toFixed(2) + '%')}
+       ${metric('매출', money(c.maechul))}
+       ${metric('ROAS', `<span class="roas-pill ${rcls}">${c.roas}%</span>`)}
+     </div>`;
+  document.getElementById('crv-detail-sub').textContent = `${Q.label} · 4분면 분류`;
+}
+
 // 초기 렌더
-renderKPI(); renderTrend(); renderSplit(); renderMix(); renderAI();
+renderKPI(); renderTrend(); renderSplit(); renderMix(); renderQuad(); renderAI();
 </script>
 
 </body>

@@ -11,7 +11,7 @@
 
   /* ===== 별점 트렌드 SVG 라인차트 ===== */
   .star-chart-wrap { width:100%; overflow:hidden; }
-  .star-svg { width:100%; height:220px; display:block; }
+  .star-svg { width:100%; height:auto; display:block; }
   .star-axis { font-size:9px; fill:#999; font-weight:600; }
   .star-grid { stroke:#F0F0F0; stroke-width:1; }
   .star-area { fill:rgba(216,64,77,0.08); }
@@ -19,12 +19,12 @@
   .star-dot { fill:#D8404D; stroke:#fff; stroke-width:2; }
 
   /* ===== 별점 분포 바 ===== */
-  .star-bar-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #F5F5F5; }
+  .star-bar-row { display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid #F5F5F5; }
   .star-bar-row:last-child { border-bottom:none; }
-  .star-label { font-size:13px; font-weight:700; color:#F5B301; width:28px; flex-shrink:0; }
-  .star-track { flex:1; height:14px; background:#F0F0F0; border-radius:7px; overflow:hidden; }
-  .star-fill { height:100%; border-radius:7px; background:linear-gradient(90deg,#F5B301,#FFD93D); }
-  .star-pct { font-size:12px; font-weight:700; color:#1A1A1A; width:36px; text-align:right; flex-shrink:0; }
+  .star-label { font-size:15px; font-weight:700; color:#F5B301; width:34px; flex-shrink:0; }
+  .star-track { flex:1; height:20px; background:#F0F0F0; border-radius:10px; overflow:hidden; }
+  .star-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,#F5B301,#FFD93D); }
+  .star-pct { font-size:14px; font-weight:700; color:#1A1A1A; width:42px; text-align:right; flex-shrink:0; }
 
   /* ===== 키워드 빈도 바 ===== */
   .kw-bar-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #F5F5F5; }
@@ -163,14 +163,14 @@
       <span class="area-title">⭐ 별점 트렌드</span>
       <span class="area-ctx" id="trend-ctx"></span>
     </div>
-    <div class="two-col" style="grid-template-columns:1.5fr 1fr;align-items:stretch;margin-bottom:32px;">
+    <div class="two-col" style="grid-template-columns:2.3fr 1fr;align-items:stretch;margin-bottom:32px;">
       <div class="chart-card" style="position:relative;margin-bottom:0;">
         <div class="section-title">
           월별 별점 추이
           <span class="section-title-sub">최근 12개월 가중평균 · 그래프에 마우스를 올리면 상세</span>
         </div>
         <div class="star-chart-wrap">
-          <svg class="star-svg" viewBox="0 0 520 200" id="star-svg"></svg>
+          <svg class="star-svg" viewBox="0 0 760 300" preserveAspectRatio="xMidYMid meet" id="star-svg"></svg>
         </div>
         <div class="chart-tip" id="voc-tip"></div>
         <div style="font-size:10px;color:#999;margin-top:6px;text-align:center;">
@@ -362,7 +362,7 @@ function renderKPI() {
 // ===== 별점 트렌드 라인차트 (동적 y축) =====
 const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const BASE_TREND = [4.52,4.55,4.60,4.58,4.63,4.65,4.68,4.66,4.70,4.72,4.75,4.73];
-const SW = 520, SH = 200, SPAD = { top:22, right:18, bottom:34, left:44 };
+const SW = 760, SH = 300, SPAD = { top:26, right:24, bottom:42, left:52 };
 const scw = SW - SPAD.left - SPAD.right, sch = SH - SPAD.top - SPAD.bottom;
 let TVALS = [], TyMin = 4.4, TyMax = 4.9;
 const sx = i => SPAD.left + (i / (MONTHS.length - 1)) * scw;
