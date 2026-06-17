@@ -22,16 +22,26 @@
   .cap-plane-tag { font-size:9px; font-weight:800; padding:1px 7px; border-radius:5px; background:#E8F5EC; color:#1EA362; }
   .cap-body { padding:6px 14px 12px; }
 
-  /* ===== 파워링크 텍스트 광고 ===== */
-  .pl-ad { padding:11px 2px; border-bottom:1px solid #F2F2F2; }
+  /* ===== 파워링크 텍스트 광고 (네이버 검색 지면 재현) ===== */
+  .pl-ad { display:flex; gap:14px; align-items:flex-start; padding:13px 2px; border-bottom:1px solid #F2F2F2; }
   .pl-ad:last-child { border-bottom:none; }
-  .pl-ad.flag { background:#FFF5F6; border:1px solid #F3C6CB; border-radius:9px; padding:11px 12px; margin:6px 0; }
-  .pl-row1 { display:flex; align-items:center; gap:6px; margin-bottom:3px; flex-wrap:wrap; }
+  .pl-main { flex:1; min-width:0; }
+  .pl-row1 { display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
+  .pl-logo { width:17px; height:17px; border-radius:50%; color:#fff; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none; }
+  .pl-advname { font-size:11.5px; font-weight:700; color:#333; }
+  .pl-url2 { font-size:11px; color:#1EA362; }
   .pl-tag { font-size:9px; color:#888; border:1px solid #D8D8D8; border-radius:3px; padding:0 4px; font-weight:700; }
-  .pl-title { font-size:13.5px; color:#1A4FBA; font-weight:700; }
-  .pl-adv { font-size:10px; color:#888; font-weight:600; }
-  .pl-url { font-size:11px; color:#1EA362; margin-top:1px; }
+  .pl-nbadge { font-size:9px; font-weight:800; color:#03C75A; border:1px solid #03C75A; border-radius:4px; padding:0 5px; }
+  .pl-nbadge.pay { color:#fff; background:#03C75A; border-color:#03C75A; }
+  .pl-title { font-size:14px; color:#1A4FBA; font-weight:700; line-height:1.4; }
   .pl-desc { font-size:11.5px; color:#555; margin-top:4px; line-height:1.45; }
+  .pl-subs { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+  .pl-subs span { font-size:10px; color:#666; background:#F4F5F7; border:1px solid #ECEDF0; border-radius:5px; padding:2px 9px; font-weight:600; }
+  .pl-thumb { width:84px; height:84px; flex:none; border-radius:10px; background:linear-gradient(135deg,#FCE9EC,#EEF1F6); display:flex; align-items:center; justify-content:center; font-size:34px; }
+  .pl-thumb-multi { display:flex; gap:7px; flex:none; }
+  .pl-tt { width:62px; text-align:center; }
+  .pl-tt-img { height:62px; border-radius:9px; background:linear-gradient(135deg,#FCE9EC,#EEF1F6); display:flex; align-items:center; justify-content:center; font-size:25px; }
+  .pl-tt span { font-size:9px; color:#777; font-weight:600; display:block; margin-top:3px; line-height:1.2; }
   .own-flag { font-size:9px; font-weight:800; color:#fff; background:#DC2626; border-radius:5px; padding:1px 6px; }
 
   /* ===== 쇼핑검색 상품 광고 ===== */
@@ -243,25 +253,38 @@
 // ============================================================
 const POWERLINK = [
   {
-    kw: '약손명가', time: '2026-06-14 09:35', device: '네이버 모바일',
+    kw: '리프팅밴드', time: '2026-06-16 09:35', device: '네이버 모바일',
     ads: [
-      { adv:'약손명가 공식', ours:true, title:'약손명가 헬스케어 공식몰', url:'smartstore.naver.com/yakson', desc:'리프팅밴드·패치·골기 스톤 공식 정품 · 47년 노하우 · 오늘출발' },
-      { adv:'메디뷰티몰', flag:true, ownKw:'약손명가', title:'리프팅밴드 최저가 — 약손 NO', url:'medibeautymall.com', desc:'약손보다 저렴한 탄력 리프팅밴드 · 오늘 단독 특가 1+1' },
+      { adv:'뷰앤디', logo:'b', logoColor:'#5B3FD8', url:'beaund.com', badge:'login',
+        title:'뷰앤디 앤모드 PRO 런칭! · 2025 포브스 선정 브랜드',
+        desc:'완전히 새로워진 성능, 더 강력하게 돌아온 앤모드PRO 출시! 자체개발, 국내제작',
+        subs:['1+1행사','100%환불','당일배송','무상A/S'], thumb:'single', emoji:'💆‍♀️' },
     ],
   },
   {
-    kw: '리프팅밴드', time: '2026-06-14 09:32', device: '네이버 모바일',
+    kw: '리프팅패치', time: '2026-06-16 09:32', device: '네이버 모바일',
     ads: [
-      { adv:'약손명가 공식', ours:true, title:'약손명가 리프팅밴드 공식', url:'smartstore.naver.com/yakson', desc:'턱선 고정 리프팅밴드 · 공식 정품 · 내구성 강함 리뷰 1만+' },
-      { adv:'메디뷰티', title:'턱라인 리프팅밴드 1+1 기획전', url:'medibeauty.co.kr', desc:'탄력 밴드 1+1 한정 · 무료배송 · 당일발송' },
-      { adv:'에이뷰티', title:'V라인 밴드 베스트', url:'abeauty.kr', desc:'가벼운 데일리 리프팅밴드 · 리뷰 이벤트' },
+      { adv:'메디테라피', logo:'M', logoColor:'#E2556A', url:'meditherapy.co.kr', badge:'login',
+        title:'3중 마스크로 부위별 리프팅',
+        desc:'집에서 간편하게 관리하는 처진 피부! 사용 단 1회만으로 붓기까지 즉각 케어',
+        thumb:'triple', thumbs:[{e:'🎭',l:'3중 리프팅'},{e:'📐',l:'부위별 설계'},{e:'💆',l:'텐션업마스크'}] },
     ],
   },
   {
-    kw: '약손명가 패치', time: '2026-06-12 14:08', device: '네이버 PC',
+    kw: '브이라인 마사지기', time: '2026-06-15 21:14', device: '네이버 모바일',
     ads: [
-      { adv:'약손명가 공식', ours:true, title:'약손명가 리프팅패치 (PDRN)', url:'smartstore.naver.com/yakson', desc:'PDRN 탄력 패치 공식 정품 · 자국 없는 흡수' },
-      { adv:'PDRN랩', flag:true, ownKw:'약손명가', title:'PDRN 패치 약손보다 저렴', url:'pdrnlab.co.kr', desc:'약손명가 대신 PDRN랩 · 동일 성분 반값' },
+      { adv:'셀비전', logo:'C', logoColor:'#2E8BD0', url:'cellvision.kr', badge:'login',
+        title:'트리플 EMS 쎄라쥬 · 속근육부터 라인까지 · 트리플 EMS 디바이스',
+        desc:'얼굴 근육부터 페이스라인까지 빈틈없이 관리, 균형 잡힌 윤곽 라인 완성' },
+    ],
+  },
+  {
+    kw: '경락 디바이스', time: '2026-06-15 18:22', device: '네이버 모바일',
+    ads: [
+      { adv:'비오디유', logo:'V', logoColor:'#1BA89B', url:'smartstore.naver.com/re-viive', badge:'npayplus',
+        title:'누적 판매량 4만개 돌파!',
+        desc:'고객이 증명하는 효과! 비오디유로 확실하게 브이라인! 지금 바로 착붙이는 턱선 찾기! 고객 후기가 증명하는 확실한 윤곽 케어',
+        subs:['비오디유','얼굴마사지기','리프팅밴드'], thumb:'single', emoji:'🙆‍♀️' },
     ],
   },
 ];
@@ -298,13 +321,21 @@ const SCRUB = [
 let curPlane = 'powerlink';
 
 function plAd(a) {
-  const flagBadge = a.flag ? `<span class="own-flag">⚠ 자사 키워드</span>` : '';
-  const advBadge = a.ours ? `<span class="pl-adv" style="color:#D8404D;">· 자사</span>` : `<span class="pl-adv">· ${a.adv}</span>`;
-  return `<div class="pl-ad${a.flag ? ' flag' : ''}">
-    <div class="pl-row1"><span class="pl-tag">광고</span>${flagBadge}</div>
-    <div class="pl-title">${a.title} ${advBadge}</div>
-    <div class="pl-url">${a.url}</div>
-    <div class="pl-desc">${a.desc}</div>
+  const badge = a.badge === 'login' ? '<span class="pl-nbadge">N 로그인</span>'
+    : a.badge === 'npay' ? '<span class="pl-nbadge pay">N pay</span>'
+    : a.badge === 'npayplus' ? '<span class="pl-nbadge pay">N pay+</span>' : '';
+  const subs = a.subs ? `<div class="pl-subs">${a.subs.map(s => `<span>${s}</span>`).join('')}</div>` : '';
+  let thumb = '';
+  if (a.thumb === 'single') thumb = `<div class="pl-thumb">${a.emoji || '🖼️'}</div>`;
+  else if (a.thumb === 'triple') thumb = `<div class="pl-thumb-multi">${a.thumbs.map(t => `<div class="pl-tt"><div class="pl-tt-img">${t.e}</div><span>${t.l}</span></div>`).join('')}</div>`;
+  return `<div class="pl-ad">
+    <div class="pl-main">
+      <div class="pl-row1"><span class="pl-logo" style="background:${a.logoColor || '#999'};">${a.logo || a.adv[0]}</span><span class="pl-advname">${a.adv}</span><span class="pl-url2">${a.url}</span><span class="pl-tag">광고</span>${badge}</div>
+      <div class="pl-title">${a.title}</div>
+      <div class="pl-desc">${a.desc}</div>
+      ${subs}
+    </div>
+    ${thumb}
   </div>`;
 }
 function shCard(a) {

@@ -19,8 +19,7 @@
   .star-dot { fill:#D8404D; stroke:#fff; stroke-width:2; }
 
   /* ===== 별점 분포 바 ===== */
-  .star-bar-row { display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid #F5F5F5; }
-  .star-bar-row:last-child { border-bottom:none; }
+  .star-bar-row { display:flex; align-items:center; gap:12px; padding:6px 0; }
   .star-label { font-size:15px; font-weight:700; color:#F5B301; width:34px; flex-shrink:0; }
   .star-track { flex:1; height:20px; background:#F0F0F0; border-radius:10px; overflow:hidden; }
   .star-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,#F5B301,#FFD93D); }
@@ -173,16 +172,13 @@
           <svg class="star-svg" viewBox="0 0 760 300" preserveAspectRatio="xMidYMid meet" id="star-svg"></svg>
         </div>
         <div class="chart-tip" id="voc-tip"></div>
-        <div style="font-size:10px;color:#999;margin-top:6px;text-align:center;">
-          ■ <span style="color:#D8404D;font-weight:700;">별점 (가중평균)</span> &nbsp; 점선 = 목표 4.8
-        </div>
       </div>
-      <div class="chart-card" style="margin-bottom:0;">
+      <div class="chart-card" style="margin-bottom:0;display:flex;flex-direction:column;">
         <div class="section-title">
           별점 분포
           <span class="section-title-sub" id="star-dist-sub"></span>
         </div>
-        <div id="star-dist"></div>
+        <div id="star-dist" style="flex:1;display:flex;flex-direction:column;justify-content:space-between;"></div>
       </div>
     </div>
 
@@ -355,13 +351,13 @@ function renderKPI() {
   document.getElementById('kpi-grid').innerHTML =
       card('총 리뷰', reviews.toLocaleString(), '건', '전월 대비 +5.2%', true)
     + card('평균 별점', star.toFixed(1), '점', '전월 대비 +0.1점', false)
-    + card('재구매 리뷰', pr.repur.toFixed(2), '%', '전월 대비 +0.2%p', false)
-    + card('긍정률', pos, '%', '전월 대비 +1.4%p', false);
+    + card('재구매 리뷰', pr.repur.toFixed(2), '%', '전월 대비 +0.2%', false)
+    + card('긍정률', pos, '%', '전월 대비 +1.4%', false);
 }
 
 // ===== 별점 트렌드 라인차트 (동적 y축) =====
-const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-const BASE_TREND = [4.52,4.55,4.60,4.58,4.63,4.65,4.68,4.66,4.70,4.72,4.75,4.73];
+const MONTHS = ['6월','7월','8월','9월','10월','11월','12월','1월','2월','3월','4월','5월','6월'];
+const BASE_TREND = [4.50,4.52,4.55,4.58,4.60,4.63,4.65,4.68,4.66,4.70,4.72,4.75,4.73];
 const SW = 760, SH = 300, SPAD = { top:26, right:24, bottom:42, left:52 };
 const scw = SW - SPAD.left - SPAD.right, sch = SH - SPAD.top - SPAD.bottom;
 let TVALS = [], TyMin = 4.4, TyMax = 4.9;
@@ -447,21 +443,32 @@ function renderStarDist() {
   document.getElementById('star-dist-sub').innerHTML = ctxLabel();
 }
 
-// ===== 긍정 키워드 빈도 =====
+// ===== 긍정 키워드 빈도 (별점 필터 연동) =====
+const STAR_KW_MULT = { all: 1, '5': 1.15, '4': 0.92, low: 0.45 };
 function renderPosKw() {
-  const kw = PROD[curProduct].kw, max = kw[0][1];
-  document.getElementById('pos-kw-list').innerHTML = kw.map(k => `
-    <div class="kw-bar-row">
+  const kw = PROD[curProduct].kw, baseMax = kw[0][1], mult = STAR_KW_MULT[curStar] || 1;
+  document.getElementById('pos-kw-list').innerHTML = kw.map(k => {
+    const f = Math.round(k[1] * mult);
+    return `<div class="kw-bar-row">
       <span class="kw-label">${k[0]}</span>
-      <div class="kw-track"><div class="kw-fill-pos" style="width:${Math.round(k[1] / max * 100)}%;"></div></div>
-      <span class="kw-freq">${k[1].toLocaleString()}</span>
-    </div>`).join('');
+      <div class="kw-track"><div class="kw-fill-pos" style="width:${Math.min(100, Math.round(f / baseMax * 100))}%;"></div></div>
+      <span class="kw-freq">${f.toLocaleString()}</span>
+    </div>`;
+  }).join('');
   document.getElementById('pos-kw-sub').innerHTML = ctxLabel() + ' · 상위 5개';
 }
 
-// ===== 내구성 인식 분포 =====
+// ===== 내구성 인식 분포 (별점 필터 연동) =====
+function durByStar(d) {
+  const s = curStar === '5' ? 14 : curStar === '4' ? 4 : curStar === 'low' ? -30 : 0;
+  if (!s) return d;
+  const strong = Math.max(5, Math.min(95, d[0] + s));
+  const delta = strong - d[0];
+  const weak = Math.max(1, d[2] - delta);
+  return [strong, 100 - strong - weak, weak];
+}
 function renderDurability() {
-  const d = PROD[curProduct].dur;
+  const d = durByStar(PROD[curProduct].dur);
   document.getElementById('dur-bar-track').innerHTML =
       `<div class="dur-seg strong" style="width:${d[0]}%;">강해요 ${d[0]}%</div>`
     + `<div class="dur-seg normal" style="width:${d[1]}%;">보통 ${d[1]}%</div>`
@@ -543,6 +550,8 @@ function setStar(s, el) {
   curStar = s;
   document.querySelectorAll('.filter-chip.star').forEach(x => x.classList.remove('active'));
   el.classList.add('active');
+  renderPosKw();
+  renderDurability();
   renderReviews();
 }
 

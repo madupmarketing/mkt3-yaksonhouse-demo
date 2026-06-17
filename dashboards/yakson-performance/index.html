@@ -263,11 +263,11 @@ function renderKPI() {
   const roas = Math.round(b.roas + p.roasAdd);
   const fmtEok = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
   document.getElementById('kpi-grid').innerHTML =
-      kpiCard('총 매출', fmtEok(rev), '억원', '+3.2%p')
-    + kpiCard('총 광고비', fmtEok(spend), '억원', '+1.8%p')
-    + kpiCard('평균 ROAS', roas, '%', '+2.1%p')
-    + kpiCard('평균 객단가', b.aov.toLocaleString(), '원', '+0.9%p')
-    + kpiCard('평균 전환율', b.cvr.toFixed(2), '%', '+0.5%p');
+      kpiCard('총 매출', fmtEok(rev), '억원', '+3.2%')
+    + kpiCard('총 광고비', fmtEok(spend), '억원', '+1.8%')
+    + kpiCard('평균 ROAS', roas, '%', '+2.1%')
+    + kpiCard('평균 객단가', b.aov.toLocaleString(), '원', '+0.9%')
+    + kpiCard('평균 전환율', b.cvr.toFixed(2), '%', '+0.5%');
 }
 
 // ===== 추이 차트 (필터 반응형) =====
@@ -433,7 +433,7 @@ const DIMS = {
   brand:   { field:'brand', cats:[['전체','전체'],['약손명가','약손명가 헬스케어'],['올리리라','올리리라'],['골기','골기']], colors:{ '약손명가':'#D8404D', '올리리라':'#4A90D9', '골기':'#C9A227' } },
 };
 let curDim = 'type', curCat = '전체';
-// 기간 비교 — '현재'(증감 없음) + 직전 동기 대비 지표별 증감(%). 비율지표(ctr/cvr/roas)는 %p
+// 기간 비교 — '현재'(증감 없음) + 직전 동기 대비 지표별 증감(%). 비율지표(ctr/cvr/roas)는 %
 const CMP = {
   now: { label: '현재',     base: null },
   dod: { label: '전일 대비', base: { soje: 2.4, impr: 1.9, clicks: 3.0, ctr: 1.1, cpc: -1.3, buys: 4.1, cvr: 1.4, maechul: 4.7, roas: 2.2 } },
@@ -441,7 +441,7 @@ const CMP = {
   mom: { label: '전월 대비', base: { soje: 1.8, impr: 5.2, clicks: 4.4, ctr: -0.7, cpc: 1.5, buys: 6.1, cvr: 1.6, maechul: 6.8, roas: 2.1 } },
 };
 const CMP_SEED = { dod: 1, wow: 2, mom: 3 };
-const RATE_M = { ctr: 1, cvr: 1, roas: 1 };   // 비율 지표 → %p
+const RATE_M = { ctr: 1, cvr: 1, roas: 1 };   // 비율 지표 → %
 let curCmp = 'now';
 const money = man => { man = Math.round(man); return man >= 10000 ? (man / 10000).toFixed(2) + '억' : man.toLocaleString() + '만'; };
 const tagHtml = t => t === 'SA' ? '<span class="tag-sa">SA</span>' : t === 'DA' ? '<span class="tag-da">DA</span>' : '<span class="tag-etc">ETC</span>';
@@ -454,8 +454,8 @@ function renderMix() {
   const cmp = CMP[curCmp], dB = cmp.base;
   // 셀 증감 배지 (rowIdx·metricIdx 기반 결정적 지터로 행별 변동)
   const jit = (rowIdx, mIdx) => ((rowIdx * 31 + mIdx * 17 + (CMP_SEED[curCmp] || 0) * 7) % 13 - 6) * 0.3;
-  const dCell = (key, j) => { if (!dB) return ''; const v = dB[key] + (j || 0), up = v >= 0; return `<div class="cell-delta ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}${RATE_M[key] ? '%p' : '%'}</div>`; };
-  const dSum = key => { if (!dB) return ''; const v = dB[key], up = v >= 0; return `<span class="mdelta ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}${RATE_M[key] ? '%p' : '%'}</span>`; };
+  const dCell = (key, j) => { if (!dB) return ''; const v = dB[key] + (j || 0), up = v >= 0; return `<div class="cell-delta ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}${RATE_M[key] ? '%' : '%'}</div>`; };
+  const dSum = key => { if (!dB) return ''; const v = dB[key], up = v >= 0; return `<span class="mdelta ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}${RATE_M[key] ? '%' : '%'}</span>`; };
   const selBar = document.getElementById('mix-sel-bar');
   if (isAll) {
     selBar.style.display = 'none';
@@ -507,7 +507,6 @@ function renderMix() {
   document.getElementById('mix-table-title').textContent = DIM_TITLE[curDim];
 
   const rowHtml = (m, ri) => {
-    const rcls = m.roas >= 600 ? 'high' : m.roas >= 460 ? 'mid' : 'low';
     const dotc = isAll ? catColor('channel', m.g) : catColor(curDim, m[D.field]);
     return `<tr>
       <td><span style="font-size:9px;color:${dotc};margin-right:5px;">●</span>${tagHtml(m.tag)} <span style="font-weight:700;color:#1A1A1A;margin-left:4px;">${m.name}</span></td>
@@ -519,7 +518,7 @@ function renderMix() {
       <td class="right" style="color:#6B6B6B;">${fmtMan(m.buys)}${dCell('buys', jit(ri, 6))}</td>
       <td class="right" style="color:#6B6B6B;">${m.cvr.toFixed(1)}%${dCell('cvr', jit(ri, 7))}</td>
       <td class="right" style="color:#6B6B6B;">${money(m.maechul)}${dCell('maechul', jit(ri, 8))}</td>
-      <td class="right"><span class="roas-pill ${rcls}">${m.roas}%</span>${dCell('roas', jit(ri, 9))}</td>
+      <td class="right" style="color:#6B6B6B;">${m.roas}%${dCell('roas', jit(ri, 9))}</td>
     </tr>`;
   };
 
@@ -587,7 +586,7 @@ function renderAI() {
   const byMae = MEDIA.slice().sort((x, y) => y.maechul - x.maechul)[0];
   const rp = SPLIT[curBrand][1];
   const lines = [
-    { ic: '📊', tx: `<b>${curPeriod} · ${curBrand} 종합</b> — 총 매출 <b>${fmt(rev)}억</b>(전일 대비 +3.2%p), 광고비 <b>${fmt(spend)}억</b>(+1.8%p), 평균 ROAS <b>${roas}%</b>(+2.1%p)로 목표 500% 상회. 효율·매출 동반 개선 흐름.` },
+    { ic: '📊', tx: `<b>${curPeriod} · ${curBrand} 종합</b> — 총 매출 <b>${fmt(rev)}억</b>(전일 대비 +3.2%), 광고비 <b>${fmt(spend)}억</b>(+1.8%), 평균 ROAS <b>${roas}%</b>(+2.1%)로 목표 500% 상회. 효율·매출 동반 개선 흐름.` },
     { ic: '🟢', tx: `<b>호조</b> — <b>${best.name}</b> ROAS ${best.roas}%로 최고 효율, <b>${byMae.name}</b>이 매출 기여 1위(${money(byMae.maechul)}). 재구매 매출 비중 <b>${rp}%</b>로 LTV 기반 견조.` },
     { ic: '🟡', tx: `<b>점검</b> — <b>${worst.name}</b> ROAS ${worst.roas}%로 목표 하회. 소재·입찰 점검 권고.` },
     { ic: '💡', tx: `<b>권고(제안)</b> — ① 고효율 매체 예산 비중 상향 검토 ② 저효율 매체 크리에이티브 A/B 교체. <i style="color:#999;">실행은 승인 후 진행.</i>` },
@@ -660,8 +659,8 @@ const quadOf = c => { const hi = c.roas >= QmedRoas, hc = c.ctr >= QmedCtr; retu
 
 const QW = 760, QH = 430, QL = 60, QR = 152, QT = 46, QB = 52;
 const Qctrs = CRV.map(c => c.ctr), Qroass = CRV.map(c => c.roas);
-const QctrMin = Math.min.apply(null, Qctrs) * 0.82, QctrMax = Math.max.apply(null, Qctrs) * 1.06;
-const QroasMin = Math.min.apply(null, Qroass) * 0.78, QroasMax = Math.max.apply(null, Qroass) * 1.08;
+const QctrMin = Math.min.apply(null, Qctrs) * 0.55, QctrMax = Math.max.apply(null, Qctrs) * 1.06;
+const QroasMin = Math.min.apply(null, Qroass) * 0.42, QroasMax = Math.max.apply(null, Qroass) * 1.08;
 const Qx = ctr => QL + (QW - QL - QR) * (ctr - QctrMin) / (QctrMax - QctrMin);
 const Qy = roas => (QH - QB) - (QH - QB - QT) * (roas - QroasMin) / (QroasMax - QroasMin);
 
@@ -682,7 +681,7 @@ function renderQuad() {
   svg += `<text x="${QL - 4}" y="${QT - 14}" font-size="11" font-weight="800" fill="#6B6B6B">ROAS (매출 효율) ▲</text>`;
   svg += `<text x="${QW - QR + 8}" y="${QH - QB + 4}" font-size="11" font-weight="800" fill="#6B6B6B">CTR (클릭 반응도) ▶</text>`;
   // 사분면 라벨(코너)
-  const qlab = (qx, qy, anchor, q) => `<text x="${qx}" y="${qy}" text-anchor="${anchor}" font-size="11.5" font-weight="800" fill="${QUAD[q].color}">${QUAD[q].label}</text>`;
+  const qlab = (qx, qy, anchor, q) => `<text x="${qx}" y="${qy}" text-anchor="${anchor}" font-size="11.5" font-weight="800" fill="${QUAD[q].color}" stroke="#FFFFFF" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">${QUAD[q].label}</text>`;
   svg += qlab(QL + 7, QT + 15, 'start', 'tl');
   svg += qlab(QW - QR - 7, QT + 15, 'end', 'tr');
   svg += qlab(QL + 7, QH - QB - 9, 'start', 'bl');
@@ -708,10 +707,9 @@ function selectCreative(i) {
     d.setAttribute('fill-opacity', on ? '1' : '0.55');
   });
   const metric = (l, v) => `<div class="crv-m"><div class="l">${l}</div><div class="v">${v}</div></div>`;
-  const rcls = c.roas >= 300 ? 'high' : c.roas >= 150 ? 'mid' : 'low';
   document.getElementById('crv-detail').innerHTML =
     `<div class="crv-img">🖼️ 소재 이미지 · 업데이트 예정</div>
-     <div class="crv-name">${c.name}<span class="crv-quad" style="background:${Q.color}1A;color:${Q.color};">${Q.label}</span></div>
+     <div class="crv-name">소재명: ${c.name}<span class="crv-quad" style="background:${Q.color}1A;color:${Q.color};">${Q.label}</span></div>
      <div class="crv-metrics">
        ${metric('소진', money(c.soje))}
        ${metric('노출', fmtMan(c.impr))}
@@ -721,7 +719,7 @@ function selectCreative(i) {
        ${metric('구매', fmtMan(c.buys))}
        ${metric('CVR', c.cvr.toFixed(2) + '%')}
        ${metric('매출', money(c.maechul))}
-       ${metric('ROAS', `<span class="roas-pill ${rcls}">${c.roas}%</span>`)}
+       ${metric('ROAS', c.roas + '%')}
      </div>`;
   document.getElementById('crv-detail-sub').textContent = `${Q.label} · 4분면 분류`;
 }
