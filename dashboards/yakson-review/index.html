@@ -13,13 +13,13 @@
   .xcard.top { border-color:#F3C6CB; background:linear-gradient(180deg,#FFF7F8,#FFF); }
   .xcard-no { position:absolute; top:12px; left:12px; z-index:3; width:26px; height:26px; border-radius:50%; background:#ECECEC; color:#6B6B6B; font-size:12.5px; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.10); }
   .xcard.top .xcard-no { background:#D8404D; color:#FFF; }
-  /* 대형 제품 이미지 2개 + 중앙 × */
-  .xcard-imgs { position:relative; display:flex; align-items:center; justify-content:center; gap:8px; padding-top:4px; margin-bottom:13px; }
-  .xcard-img { width:48%; aspect-ratio:4/5; object-fit:cover; border-radius:11px; border:1px solid #EFEFEF; background:#F7F7F7; }
-  .xcard-x { position:absolute; left:50%; top:53%; transform:translate(-50%,-50%); font-size:40px; font-weight:800; color:#D8404D; opacity:.5; z-index:2; pointer-events:none; text-shadow:0 2px 12px rgba(255,255,255,.75); }
-  /* 조합 라벨 (소형 썸네일 + 제품명) */
-  .xcard-combo { display:flex; align-items:center; gap:5px; flex-wrap:wrap; font-size:11.5px; font-weight:700; color:#1A1A1A; line-height:1.35; margin-bottom:13px; }
-  .xcard-combo .xplus { color:#C4C4C4; font-weight:700; }
+  /* 대형 제품 이미지 2개 + 중앙 × (2 이미지 사이 고정) */
+  .xcard-imgs { position:relative; display:flex; align-items:center; justify-content:center; gap:9px; padding-top:4px; margin-bottom:11px; }
+  .xcard-img { width:48%; aspect-ratio:4/5; object-fit:cover; border-radius:12px; border:1px solid #EFEFEF; background:#F7F7F7; }
+  .xcard-x { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:46px; font-weight:800; color:#D8404D; opacity:.5; z-index:2; pointer-events:none; text-shadow:0 2px 12px rgba(255,255,255,.85); }
+  /* 제품명 — 각 이미지 아래 중앙정렬 (긴 이름 2줄 허용) */
+  .xcard-names { display:flex; justify-content:center; gap:9px; margin-bottom:13px; }
+  .xcard-pname { width:48%; text-align:center; font-size:12px; font-weight:700; color:#1A1A1A; line-height:1.35; word-break:keep-all; }
   /* 점수 바 + 지수 */
   .xcard-score { display:flex; align-items:center; gap:10px; margin-top:auto; }
   .xcard-bar { flex:1; height:7px; background:#F0F0F0; border-radius:4px; overflow:hidden; }
@@ -163,7 +163,7 @@
 const SKU_DATA = [
   // 약손명가 — 리프팅밴드 PRO·패치·석고 마스크팩·복부패치
   { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅밴드 PRO', rev: 7840, roas: 480, repur: 1.79, firstPct: 98.2, chMix: { store: 60, coupang: 28, etc: 12 } },
-  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'band',      sku: '리프팅패치', rev: 3210, roas: 310, repur: 4.12, firstPct: 91.4, chMix: { store: 55, coupang: 30, etc: 15 } },
+  { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'patch',     sku: '리프팅패치', rev: 3210, roas: 310, repur: 4.12, firstPct: 91.4, chMix: { store: 55, coupang: 30, etc: 15 } },
   { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'gypsum',    sku: '밀크엑소좀 석고 마스크팩', rev: 2150, roas: 270, repur: 3.50, firstPct: 93.1, chMix: { store: 48, coupang: 38, etc: 14 } },
   { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'pdrn',      sku: 'PDRN 콜라겐 석고마스크팩', rev: 1420, roas: 195, repur: 6.20, firstPct: 87.3, chMix: { store: 50, coupang: 35, etc: 15 } },
   { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'yeorihan',  sku: '여리한 패치', rev: 1680, roas: 220, repur: 5.80, firstPct: 89.7, chMix: { store: 45, coupang: 42, etc: 13 } },
@@ -323,7 +323,7 @@ function renderTable() {
 //        ④재구매 루프 강도(소모재 재구매율×3) ⑤크로스 브랜드 포트폴리오 브리지(10)
 const XSKU = [
   { name:'리프팅밴드 PRO',             img:'band',      brand:'yakson', color:'#D8404D', type:'device',     concerns:['탄력','윤곽'],        routine:'face',  repur:1.79, orders:4200 },
-  { name:'리프팅패치',                 img:'band',      brand:'yakson', color:'#D8404D', type:'consumable', concerns:['탄력','윤곽','PDRN'], routine:'face',  repur:4.12, orders:1800 },
+  { name:'리프팅패치',                 img:'patch',     brand:'yakson', color:'#D8404D', type:'consumable', concerns:['탄력','윤곽','PDRN'], routine:'face',  repur:4.12, orders:1800 },
   { name:'밀크엑소좀 석고 마스크팩',    img:'gypsum',    brand:'yakson', color:'#D8404D', type:'consumable', concerns:['붓기','진정'],        routine:'night', repur:3.50, orders:1150 },
   { name:'여리한 패치',                img:'yeorihan',  brand:'yakson', color:'#D8404D', type:'consumable', concerns:['복부','탄력'],        routine:'body',  repur:5.80, orders:980 },
   { name:'PDRN 콜라겐 석고마스크팩',    img:'pdrn',      brand:'yakson', color:'#D8404D', type:'consumable', concerns:['탄력','PDRN'],        routine:'face',  repur:6.20, orders:760 },
@@ -360,7 +360,7 @@ function buildPairs(chan) {
 // ===== 교차구매 추천 라인업 (전체 제품 조합 Top 5) =====
 // 근거(유입·구매 볼륨)는 텍스트로 노출하지 않고, 행 호버 시 팝오버로 연출
 function renderCross() {
-  const top = buildPairs(curCrossChan).slice(0, 5);
+  const top = buildPairs(curCrossChan).slice(0, 4);
   const c = PCHAN[curCrossChan];
   document.getElementById('cross-sell-grid').innerHTML = '<div class="xrank">' + top.map((p, i) => {
     // 디바이스(앵커 제품)를 앞에 배치
@@ -393,10 +393,9 @@ function renderCross() {
         <span class="xcard-x">×</span>
         <img class="xcard-img" src="../_assets/products/${second.img}.jpg" alt="${second.name}" loading="lazy">
       </div>
-      <div class="xcard-combo">
-        <img class="xthumb" src="../_assets/products/${first.img}.jpg" alt="${first.name}" loading="lazy">${first.name}
-        <span class="xplus">×</span>
-        <img class="xthumb" src="../_assets/products/${second.img}.jpg" alt="${second.name}" loading="lazy">${second.name}
+      <div class="xcard-names">
+        <div class="xcard-pname">${first.name}</div>
+        <div class="xcard-pname">${second.name}</div>
       </div>
       <div class="xcard-score">
         <div class="xcard-bar"><i style="width:${Math.min(idx, 100)}%;"></i></div>
@@ -409,7 +408,7 @@ function renderCross() {
       </div>
     </div>`;
   }).join('') + '</div>';
-  document.getElementById('cross-sub').textContent = `${PCHAN[curCrossChan].label} · 전체 등록 제품 조합 · 크로스셀 지수 상위 5`;
+  document.getElementById('cross-sub').textContent = `${PCHAN[curCrossChan].label} · 전체 등록 제품 조합 · 크로스셀 지수 상위 4`;
 }
 
 // ===== 오케스트레이터 =====

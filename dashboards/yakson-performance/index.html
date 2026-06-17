@@ -58,11 +58,14 @@
   .cmp-btn.on { background:#D8404D; border-color:#D8404D; color:#FFF; }
   .mix-meta .mdelta { font-size:10px; font-weight:800; margin-left:6px; white-space:nowrap; }
   .mdelta.up { color:#15803D; } .mdelta.down { color:#DC2626; }
+  /* 채널별 성과 테이블 — 지표별 증감 배지 (기간 비교 시) */
+  .cell-delta { font-size:8.5px; font-weight:800; line-height:1.25; margin-top:2px; white-space:nowrap; }
+  .cell-delta.up { color:#15803D; } .cell-delta.down { color:#DC2626; }
 
   /* 소재별 성과 분포도 (4분면 산점도) */
   .quad-dot { cursor:pointer; transition:r .12s, opacity .12s; }
   .quad-dot:hover { opacity:0.8; }
-  .crv-img { height:118px; border:1.5px dashed #E2C3C7; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#FFF7F8; color:#C98A92; font-size:12.5px; font-weight:700; margin-bottom:14px; text-align:center; }
+  .crv-img { flex:1; min-height:150px; border:1.5px dashed #E2C3C7; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#FFF7F8; color:#C98A92; font-size:12.5px; font-weight:700; margin-bottom:14px; text-align:center; }
   .crv-name { font-size:14px; font-weight:800; color:#1A1A1A; margin-bottom:13px; line-height:1.4; display:flex; align-items:center; flex-wrap:wrap; gap:4px; }
   .crv-quad { font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:10px; white-space:nowrap; }
   .crv-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
@@ -170,16 +173,17 @@
       </div>
       <div class="chart-card" style="margin-bottom:0;display:flex;flex-direction:column;">
         <div class="section-title" style="margin-bottom:12px;">소재 성과 상세<span class="section-title-sub" id="crv-detail-sub"></span></div>
-        <div id="crv-detail" style="flex:1;"></div>
+        <div id="crv-detail" style="flex:1;display:flex;flex-direction:column;"></div>
       </div>
     </div>
 
     <div class="mix-section-head">
       <div class="section-title" style="margin-bottom:0;">채널 포트폴리오</div>
       <div class="cmp-bar" id="cmp-bar">
+        <span class="cmp-btn on" data-cmp="now">현재</span>
         <span class="cmp-btn" data-cmp="dod">전일 대비</span>
         <span class="cmp-btn" data-cmp="wow">전주 대비</span>
-        <span class="cmp-btn on" data-cmp="mom">전월 대비</span>
+        <span class="cmp-btn" data-cmp="mom">전월 대비</span>
       </div>
     </div>
     <div class="mix-dim-bar">
@@ -429,13 +433,16 @@ const DIMS = {
   brand:   { field:'brand', cats:[['전체','전체'],['약손명가','약손명가 헬스케어'],['올리리라','올리리라'],['골기','골기']], colors:{ '약손명가':'#D8404D', '올리리라':'#4A90D9', '골기':'#C9A227' } },
 };
 let curDim = 'type', curCat = '전체';
-// 기간 비교 — 스냅샷 기간(스케일) + 직전 동기 대비 증감
+// 기간 비교 — '현재'(증감 없음) + 직전 동기 대비 지표별 증감(%). 비율지표(ctr/cvr/roas)는 %p
 const CMP = {
-  dod: { label: '전일 대비', scale: 1 / 30,  dSoje: '+2.4%', dMae: '+4.7%', dRoas: '+2.2%p' },
-  wow: { label: '전주 대비', scale: 7 / 30,  dSoje: '+1.1%', dMae: '+3.2%', dRoas: '+1.4%p' },
-  mom: { label: '전월 대비', scale: 1,       dSoje: '+1.8%', dMae: '+6.8%', dRoas: '+2.1%p' },
+  now: { label: '현재',     base: null },
+  dod: { label: '전일 대비', base: { soje: 2.4, impr: 1.9, clicks: 3.0, ctr: 1.1, cpc: -1.3, buys: 4.1, cvr: 1.4, maechul: 4.7, roas: 2.2 } },
+  wow: { label: '전주 대비', base: { soje: 1.1, impr: 2.6, clicks: 2.2, ctr: -0.4, cpc: 0.8, buys: 2.9, cvr: 0.9, maechul: 3.2, roas: 1.4 } },
+  mom: { label: '전월 대비', base: { soje: 1.8, impr: 5.2, clicks: 4.4, ctr: -0.7, cpc: 1.5, buys: 6.1, cvr: 1.6, maechul: 6.8, roas: 2.1 } },
 };
-let curCmp = 'mom';
+const CMP_SEED = { dod: 1, wow: 2, mom: 3 };
+const RATE_M = { ctr: 1, cvr: 1, roas: 1 };   // 비율 지표 → %p
+let curCmp = 'now';
 const money = man => { man = Math.round(man); return man >= 10000 ? (man / 10000).toFixed(2) + '억' : man.toLocaleString() + '만'; };
 const tagHtml = t => t === 'SA' ? '<span class="tag-sa">SA</span>' : t === 'DA' ? '<span class="tag-da">DA</span>' : '<span class="tag-etc">ETC</span>';
 const catColor = (dim, cat) => cat === '전체' ? '#1A1A1A' : (DIMS[dim].colors[cat] || '#9CA3AF');
@@ -444,7 +451,11 @@ const catLabel = (dim, cat) => { const f = DIMS[dim].cats.find(c => c[0] === cat
 function renderMix() {
   const isAll = curDim === 'all';
   const D = isAll ? null : DIMS[curDim];
-  const cmp = CMP[curCmp], sc = cmp.scale;
+  const cmp = CMP[curCmp], dB = cmp.base;
+  // 셀 증감 배지 (rowIdx·metricIdx 기반 결정적 지터로 행별 변동)
+  const jit = (rowIdx, mIdx) => ((rowIdx * 31 + mIdx * 17 + (CMP_SEED[curCmp] || 0) * 7) % 13 - 6) * 0.3;
+  const dCell = (key, j) => { if (!dB) return ''; const v = dB[key] + (j || 0), up = v >= 0; return `<div class="cell-delta ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}${RATE_M[key] ? '%p' : '%'}</div>`; };
+  const dSum = key => { if (!dB) return ''; const v = dB[key], up = v >= 0; return `<span class="mdelta ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}${RATE_M[key] ? '%p' : '%'}</span>`; };
   const selBar = document.getElementById('mix-sel-bar');
   if (isAll) {
     selBar.style.display = 'none';
@@ -484,9 +495,9 @@ function renderMix() {
       <div class="mix-pct">${(soje / TOTAL_SOJE * 100).toFixed(0)}%</div></div>
       ${barHtml}
       <div class="mix-meta">
-        <div><span class="ml">소진</span><span class="mv">${money(soje * sc)}</span><span class="mdelta up">▲ ${cmp.dSoje}</span></div>
-        <div><span class="ml">매출</span><span class="mv">${money(maechul * sc)}</span><span class="mdelta up">▲ ${cmp.dMae}</span></div>
-        <div><span class="ml">평균 ROAS</span><span class="mv">${roas}%</span><span class="mdelta up">▲ ${cmp.dRoas}</span></div>
+        <div><span class="ml">소진</span><span class="mv">${money(soje)}</span>${dSum('soje')}</div>
+        <div><span class="ml">매출</span><span class="mv">${money(maechul)}</span>${dSum('maechul')}</div>
+        <div><span class="ml">평균 ROAS</span><span class="mv">${roas}%</span>${dSum('roas')}</div>
         <div><span class="ml">매체 수</span><span class="mv">${rows.length}개</span></div>
       </div>
     </div>`;
@@ -495,20 +506,20 @@ function renderMix() {
   const DIM_TITLE = { all: '채널별 성과', channel: '채널별 성과', type: '광고 유형별 성과', brand: '브랜드별 성과' };
   document.getElementById('mix-table-title').textContent = DIM_TITLE[curDim];
 
-  const rowHtml = m => {
+  const rowHtml = (m, ri) => {
     const rcls = m.roas >= 600 ? 'high' : m.roas >= 460 ? 'mid' : 'low';
     const dotc = isAll ? catColor('channel', m.g) : catColor(curDim, m[D.field]);
     return `<tr>
       <td><span style="font-size:9px;color:${dotc};margin-right:5px;">●</span>${tagHtml(m.tag)} <span style="font-weight:700;color:#1A1A1A;margin-left:4px;">${m.name}</span></td>
-      <td class="right" style="color:#6B6B6B;">${money(m.soje * sc)}</td>
-      <td class="right" style="color:#6B6B6B;">${fmtMan(m.impr * sc)}</td>
-      <td class="right" style="color:#6B6B6B;">${fmtMan(m.clicks * sc)}</td>
-      <td class="right" style="color:#6B6B6B;">${m.ctr.toFixed(1)}%</td>
-      <td class="right" style="color:#6B6B6B;">${m.cpc.toLocaleString()}</td>
-      <td class="right" style="color:#6B6B6B;">${fmtMan(m.buys * sc)}</td>
-      <td class="right" style="color:#6B6B6B;">${m.cvr.toFixed(1)}%</td>
-      <td class="right" style="color:#6B6B6B;">${money(m.maechul * sc)}</td>
-      <td class="right"><span class="roas-pill ${rcls}">${m.roas}%</span></td>
+      <td class="right" style="color:#6B6B6B;">${money(m.soje)}${dCell('soje', jit(ri, 1))}</td>
+      <td class="right" style="color:#6B6B6B;">${fmtMan(m.impr)}${dCell('impr', jit(ri, 2))}</td>
+      <td class="right" style="color:#6B6B6B;">${fmtMan(m.clicks)}${dCell('clicks', jit(ri, 3))}</td>
+      <td class="right" style="color:#6B6B6B;">${m.ctr.toFixed(1)}%${dCell('ctr', jit(ri, 4))}</td>
+      <td class="right" style="color:#6B6B6B;">${m.cpc.toLocaleString()}${dCell('cpc', jit(ri, 5))}</td>
+      <td class="right" style="color:#6B6B6B;">${fmtMan(m.buys)}${dCell('buys', jit(ri, 6))}</td>
+      <td class="right" style="color:#6B6B6B;">${m.cvr.toFixed(1)}%${dCell('cvr', jit(ri, 7))}</td>
+      <td class="right" style="color:#6B6B6B;">${money(m.maechul)}${dCell('maechul', jit(ri, 8))}</td>
+      <td class="right"><span class="roas-pill ${rcls}">${m.roas}%</span>${dCell('roas', jit(ri, 9))}</td>
     </tr>`;
   };
 
@@ -533,15 +544,15 @@ function renderMix() {
       // 소계 행 — 각 컬럼 아래 정렬, 볼드(.mt-grp td)
       const head = `<tr class="mt-grp">
         <td><span class="mt-grp-dot" style="background:${catColor(curDim, c[0])};"></span><span class="mt-grp-name">${c[1]}</span><span class="mt-grp-cnt">${grp.length}개</span></td>
-        <td class="right">${money(gSoje * sc)}</td>
-        <td class="right">${fmtMan(gImpr * sc)}</td>
-        <td class="right">${fmtMan(gClk * sc)}</td>
-        <td class="right">${gCtr.toFixed(1)}%</td>
-        <td class="right">${Math.round(gCpc).toLocaleString()}</td>
-        <td class="right">${fmtMan(gBuy * sc)}</td>
-        <td class="right">${gCvr.toFixed(1)}%</td>
-        <td class="right">${money(gMae * sc)}</td>
-        <td class="right">${gRoas}%</td>
+        <td class="right">${money(gSoje)}${dCell('soje', 0)}</td>
+        <td class="right">${fmtMan(gImpr)}${dCell('impr', 0)}</td>
+        <td class="right">${fmtMan(gClk)}${dCell('clicks', 0)}</td>
+        <td class="right">${gCtr.toFixed(1)}%${dCell('ctr', 0)}</td>
+        <td class="right">${Math.round(gCpc).toLocaleString()}${dCell('cpc', 0)}</td>
+        <td class="right">${fmtMan(gBuy)}${dCell('buys', 0)}</td>
+        <td class="right">${gCvr.toFixed(1)}%${dCell('cvr', 0)}</td>
+        <td class="right">${money(gMae)}${dCell('maechul', 0)}</td>
+        <td class="right">${gRoas}%${dCell('roas', 0)}</td>
       </tr>`;
       return head + grp.map(rowHtml).join('');
     }).join('');
