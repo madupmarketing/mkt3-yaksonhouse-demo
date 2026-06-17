@@ -125,25 +125,43 @@
           첫구매 · 재구매 매출
           <span class="section-title-sub">선택 기간·브랜드 매출 구성</span>
         </div>
-        <div class="brand-donut" style="flex:1;flex-direction:column;align-items:center;gap:18px;justify-content:center;">
-          <div class="donut-wrap" style="width:152px;height:152px;">
-            <svg viewBox="0 0 130 130" width="152" height="152" style="display:block;">
-              <circle cx="65" cy="65" r="52" fill="none" stroke="#F0F0F0" stroke-width="18"/>
-              <circle id="sp-first" cx="65" cy="65" r="52" fill="none" stroke="#D8404D" stroke-width="18"
-                stroke-dasharray="0 326.7" stroke-dashoffset="0" transform="rotate(-90 65 65)"
-                style="transition:stroke-dasharray .55s ease;"/>
-              <circle id="sp-repur" cx="65" cy="65" r="52" fill="none" stroke="#4A90D9" stroke-width="18"
-                stroke-dasharray="0 326.7" stroke-dashoffset="0" transform="rotate(-90 65 65)"
-                style="transition:stroke-dasharray .55s ease, stroke-dashoffset .55s ease;"/>
+        <div class="brand-donut" style="flex:1;flex-direction:column;align-items:center;gap:26px;justify-content:center;padding:10px 0;">
+          <div class="donut-wrap" style="width:228px;height:228px;">
+            <svg viewBox="0 0 200 200" width="228" height="228" style="display:block;overflow:visible;">
+              <defs>
+                <linearGradient id="gFirst" x1="0.1" y1="0" x2="0.9" y2="1">
+                  <stop offset="0" stop-color="#F47A86"/><stop offset="1" stop-color="#C42C3A"/>
+                </linearGradient>
+                <linearGradient id="gRepur" x1="0.1" y1="0" x2="0.9" y2="1">
+                  <stop offset="0" stop-color="#7FB8EE"/><stop offset="1" stop-color="#2C6CB6"/>
+                </linearGradient>
+                <filter id="donutShadow" x="-40%" y="-40%" width="180%" height="180%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#1A1A1A" flood-opacity="0.16"/>
+                </filter>
+                <radialGradient id="gCenter" cx="0.5" cy="0.4" r="0.62">
+                  <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F6F7F9"/>
+                </radialGradient>
+              </defs>
+              <circle cx="100" cy="100" r="78" fill="none" stroke="#EFEFF2" stroke-width="27"/>
+              <g filter="url(#donutShadow)">
+                <circle id="sp-first" cx="100" cy="100" r="78" fill="none" stroke="url(#gFirst)" stroke-width="27"
+                  stroke-dasharray="0 490" stroke-dashoffset="0" transform="rotate(-90 100 100)"
+                  style="transition:stroke-dasharray .6s cubic-bezier(.32,.72,0,1);"/>
+                <circle id="sp-repur" cx="100" cy="100" r="78" fill="none" stroke="url(#gRepur)" stroke-width="27"
+                  stroke-dasharray="0 490" stroke-dashoffset="0" transform="rotate(-90 100 100)"
+                  style="transition:stroke-dasharray .6s cubic-bezier(.32,.72,0,1), stroke-dashoffset .6s cubic-bezier(.32,.72,0,1);"/>
+              </g>
+              <circle cx="100" cy="100" r="61.5" fill="url(#gCenter)"/>
+              <text id="sp-pct-first" x="100" y="100" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="800" fill="#FFFFFF" style="pointer-events:none;"></text>
+              <text id="sp-pct-repur" x="100" y="100" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="800" fill="#FFFFFF" style="pointer-events:none;"></text>
             </svg>
             <div class="donut-center">
-              <div class="donut-center-value" id="sp-center">124억</div>
+              <div class="donut-center-value" id="sp-center" style="font-size:33px;font-weight:800;letter-spacing:-.5px;">124억</div>
               <div class="donut-center-label">총 매출</div>
             </div>
           </div>
           <div class="donut-legend" id="sp-legend" style="width:100%;flex:none;"></div>
         </div>
-        <div id="sp-callout" style="margin-top:14px;padding-top:14px;border-top:1px solid #F5F5F5;"></div>
       </div>
     </div>
 
@@ -349,18 +367,25 @@ function renderTrend() {
 
 // ===== 첫구매 · 재구매 매출 도넛 (브랜드·기간 반응형) =====
 const SPLIT = { '전체': [74, 26], '약손명가': [72, 28], '올리리라': [81, 19], '골기': [67, 33] };
-const SP_C = 326.7; // 2*pi*52
+const SP_C = 490.09; // 2*pi*78
 const fmtEokV = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
 function renderSplit() {
   const b = BRANDS[curBrand], p = PERIODS[curPeriod];
   const rev = REV_ANNUAL * b.share * p.revMul; // 억
   const [fp, rp] = SPLIT[curBrand];
   const firstRev = rev * fp / 100, repurRev = rev * rp / 100;
-  const firstLen = SP_C * fp / 100;
-  document.getElementById('sp-first').setAttribute('stroke-dasharray', `${firstLen.toFixed(1)} ${SP_C}`);
+  const GAP = 5;  // 세그먼트 사이 작은 간격
+  const firstLen = SP_C * fp / 100, repurLen = SP_C * rp / 100;
+  document.getElementById('sp-first').setAttribute('stroke-dasharray', `${(firstLen - GAP).toFixed(1)} ${SP_C}`);
   const repur = document.getElementById('sp-repur');
-  repur.setAttribute('stroke-dasharray', `${(SP_C * rp / 100).toFixed(1)} ${SP_C}`);
+  repur.setAttribute('stroke-dasharray', `${(repurLen - GAP).toFixed(1)} ${SP_C}`);
   repur.setAttribute('stroke-dashoffset', `-${firstLen.toFixed(1)}`);
+  // 호 중앙 % 라벨 (반지름 78 링 위)
+  const arcPos = frac => { const t = frac * 2 * Math.PI; return [100 + 78 * Math.sin(t), 100 - 78 * Math.cos(t)]; };
+  const [fx, fy] = arcPos((firstLen / 2) / SP_C);
+  const [rx, ry] = arcPos((firstLen + repurLen / 2) / SP_C);
+  const lf = document.getElementById('sp-pct-first'); lf.setAttribute('x', fx.toFixed(1)); lf.setAttribute('y', fy.toFixed(1)); lf.textContent = fp + '%';
+  const lr = document.getElementById('sp-pct-repur'); lr.setAttribute('x', rx.toFixed(1)); lr.setAttribute('y', ry.toFixed(1)); lr.textContent = rp + '%';
   document.getElementById('sp-center').textContent = fmtEokV(rev) + '억';
   document.getElementById('sp-legend').innerHTML = [
     { color: '#D8404D', label: '첫구매', amt: firstRev, pct: fp },
@@ -370,11 +395,6 @@ function renderSplit() {
       <span class="legend-label">${l.label}</span>
       <span class="legend-value">${fmtEokV(l.amt)}억 <span style="color:#9A9A9A;font-weight:700;font-size:11px;">${l.pct}%</span></span>
     </div>`).join('');
-  document.getElementById('sp-callout').innerHTML = `<div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:11px;color:#6B6B6B;font-weight:700;white-space:nowrap;">재구매 매출 비중</span>
-      <div style="flex:1;height:7px;background:#EAF1FB;border-radius:4px;overflow:hidden;"><i style="display:block;height:100%;width:${rp}%;background:#4A90D9;border-radius:4px;"></i></div>
-      <span style="font-size:14px;font-weight:800;color:#4A90D9;">${rp}%</span>
-    </div>`;
 }
 
 document.querySelectorAll('.filter-chip.brand').forEach(chip => chip.addEventListener('click', function () {
@@ -666,29 +686,40 @@ const Qy = roas => (QH - QB) - (QH - QB - QT) * (roas - QroasMin) / (QroasMax - 
 
 function renderQuad() {
   const cx = Qx(QmedCtr).toFixed(1), cy = Qy(QmedRoas).toFixed(1);
-  let svg = '';
-  // 사분면 배경 틴트
-  svg += `<rect x="${QL}" y="${QT}" width="${cx - QL}" height="${cy - QT}" fill="#1D4ED8" opacity="0.04"/>`;
-  svg += `<rect x="${cx}" y="${QT}" width="${QW - QR - cx}" height="${cy - QT}" fill="#D8404D" opacity="0.05"/>`;
-  svg += `<rect x="${QL}" y="${cy}" width="${cx - QL}" height="${QH - QB - cy}" fill="#9CA3AF" opacity="0.06"/>`;
-  svg += `<rect x="${cx}" y="${cy}" width="${QW - QR - cx}" height="${QH - QB - cy}" fill="#F59E0B" opacity="0.05"/>`;
-  // 중앙값 분할선 + 축
-  svg += `<line x1="${cx}" y1="${QT}" x2="${cx}" y2="${QH - QB}" stroke="#D0D0D0" stroke-width="1" stroke-dasharray="4 3"/>`;
-  svg += `<line x1="${QL}" y1="${cy}" x2="${QW - QR}" y2="${cy}" stroke="#D0D0D0" stroke-width="1" stroke-dasharray="4 3"/>`;
-  svg += `<line x1="${QL}" y1="${QH - QB}" x2="${QW - QR}" y2="${QH - QB}" stroke="#BBB" stroke-width="1.2"/>`;
-  svg += `<line x1="${QL}" y1="${QT}" x2="${QL}" y2="${QH - QB}" stroke="#BBB" stroke-width="1.2"/>`;
+  const pw = QW - QR - QL, ph = (QH - QB) - QT;
+  let svg = `<defs>
+    <radialGradient id="qg-tr" cx="0.35" cy="0.3" r="0.85"><stop offset="0" stop-color="#F2818C"/><stop offset="1" stop-color="#D8404D"/></radialGradient>
+    <radialGradient id="qg-tl" cx="0.35" cy="0.3" r="0.85"><stop offset="0" stop-color="#5B86E0"/><stop offset="1" stop-color="#1D4ED8"/></radialGradient>
+    <radialGradient id="qg-bl" cx="0.35" cy="0.3" r="0.85"><stop offset="0" stop-color="#C4CAD1"/><stop offset="1" stop-color="#9CA3AF"/></radialGradient>
+    <radialGradient id="qg-br" cx="0.35" cy="0.3" r="0.85"><stop offset="0" stop-color="#FBC967"/><stop offset="1" stop-color="#F59E0B"/></radialGradient>
+    <filter id="dotShadow" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.8" flood-color="#1A1A1A" flood-opacity="0.28"/></filter>
+    <filter id="dotGlow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="plotShadow" x="-15%" y="-15%" width="130%" height="135%"><feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#1A1A1A" flood-opacity="0.08"/></filter>
+    <clipPath id="plotClip"><rect x="${QL}" y="${QT}" width="${pw}" height="${ph}" rx="14"/></clipPath>
+  </defs>`;
+  // 플롯 프레임(소프트 섀도로 부유감) + 사분면 틴트(라운드 클립)
+  svg += `<rect x="${QL}" y="${QT}" width="${pw}" height="${ph}" rx="14" fill="#FFFFFF" stroke="#ECECEF" stroke-width="1" filter="url(#plotShadow)"/>`;
+  svg += `<g clip-path="url(#plotClip)">
+    <rect x="${QL}" y="${QT}" width="${cx - QL}" height="${cy - QT}" fill="#1D4ED8" opacity="0.045"/>
+    <rect x="${cx}" y="${QT}" width="${QW - QR - cx}" height="${cy - QT}" fill="#D8404D" opacity="0.06"/>
+    <rect x="${QL}" y="${cy}" width="${cx - QL}" height="${QH - QB - cy}" fill="#9CA3AF" opacity="0.06"/>
+    <rect x="${cx}" y="${cy}" width="${QW - QR - cx}" height="${QH - QB - cy}" fill="#F59E0B" opacity="0.05"/>
+  </g>`;
+  // 중앙값 분할선
+  svg += `<line x1="${cx}" y1="${QT}" x2="${cx}" y2="${QH - QB}" stroke="#D4D4D8" stroke-width="1" stroke-dasharray="4 4"/>`;
+  svg += `<line x1="${QL}" y1="${cy}" x2="${QW - QR}" y2="${cy}" stroke="#D4D4D8" stroke-width="1" stroke-dasharray="4 4"/>`;
   // 축 제목
   svg += `<text x="${QL - 4}" y="${QT - 14}" font-size="11" font-weight="800" fill="#6B6B6B">ROAS (매출 효율) ▲</text>`;
-  svg += `<text x="${QW - QR + 8}" y="${QH - QB + 4}" font-size="11" font-weight="800" fill="#6B6B6B">CTR (클릭 반응도) ▶</text>`;
+  svg += `<text x="${QW - QR + 10}" y="${QH - QB + 4}" font-size="11" font-weight="800" fill="#6B6B6B">CTR (클릭 반응도) ▶</text>`;
   // 사분면 라벨(코너)
   const qlab = (qx, qy, anchor, q) => `<text x="${qx}" y="${qy}" text-anchor="${anchor}" font-size="11.5" font-weight="800" fill="${QUAD[q].color}" stroke="#FFFFFF" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">${QUAD[q].label}</text>`;
-  svg += qlab(QL + 7, QT + 15, 'start', 'tl');
-  svg += qlab(QW - QR - 7, QT + 15, 'end', 'tr');
-  svg += qlab(QL + 7, QH - QB - 9, 'start', 'bl');
-  svg += qlab(QW - QR - 7, QH - QB - 9, 'end', 'br');
-  // 점
+  svg += qlab(QL + 13, QT + 19, 'start', 'tl');
+  svg += qlab(QW - QR - 13, QT + 19, 'end', 'tr');
+  svg += qlab(QL + 13, QH - QB - 13, 'start', 'bl');
+  svg += qlab(QW - QR - 13, QH - QB - 13, 'end', 'br');
+  // 점 (글로시 그라데이션 + 드롭섀도)
   CRV.forEach((c, i) => {
-    svg += `<circle class="quad-dot" data-i="${i}" cx="${Qx(c.ctr).toFixed(1)}" cy="${Qy(c.roas).toFixed(1)}" r="7" fill="${QUAD[quadOf(c)].color}" fill-opacity="0.7" stroke="#FFF" stroke-width="1.5"/>`;
+    svg += `<circle class="quad-dot" data-i="${i}" cx="${Qx(c.ctr).toFixed(1)}" cy="${Qy(c.roas).toFixed(1)}" r="9" fill="url(#qg-${quadOf(c)})" stroke="#FFF" stroke-width="1.8" filter="url(#dotShadow)" style="cursor:pointer;"/>`;
   });
   const el = document.getElementById('quad-svg');
   el.innerHTML = svg;
@@ -701,10 +732,11 @@ function selectCreative(i) {
   const c = CRV[i], Q = QUAD[quadOf(c)];
   document.querySelectorAll('#quad-svg .quad-dot').forEach(d => {
     const on = +d.getAttribute('data-i') === i;
-    d.setAttribute('r', on ? '10' : '7');
-    d.setAttribute('stroke', on ? Q.color : '#FFF');
-    d.setAttribute('stroke-width', on ? '2.5' : '1.5');
-    d.setAttribute('fill-opacity', on ? '1' : '0.55');
+    d.setAttribute('r', on ? '13' : '9');
+    d.setAttribute('stroke', '#FFF');
+    d.setAttribute('stroke-width', on ? '3' : '1.8');
+    d.setAttribute('filter', on ? 'url(#dotGlow)' : 'url(#dotShadow)');
+    d.setAttribute('opacity', on ? '1' : '0.82');
   });
   const metric = (l, v) => `<div class="crv-m"><div class="l">${l}</div><div class="v">${v}</div></div>`;
   document.getElementById('crv-detail').innerHTML =

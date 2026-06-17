@@ -11,10 +11,10 @@
   .plane-label { font-size:11px; color:#999; font-weight:700; margin-right:3px; }
 
   /* ===== 캡처 갤러리 ===== */
-  .cap-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:32px; }
-  /* 실제 소재 썸네일 — 크롭 이미지에서 제품 쪽을 보이게 정렬 (파워링크 우측·쇼핑검색 좌측) */
-  .pl-thumb .cmp-img { object-position:right center; }
-  .shop-thumb .cmp-img { object-position:left center; }
+  .cap-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:32px; align-items:start; }
+  /* 실제 지면 캡처 이미지 — 카드 너비에 맞춰 축소 표시 */
+  .cap-shot { width:100%; display:block; border-top:1px solid #F0F0F0; }
+  .cap-kw-sm { font-size:11px; font-weight:800; color:#1A1A1A; }
   .cap-card { border:1px solid #E6E6E6; border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 2px 10px rgba(0,0,0,.04); }
   .cap-head { background:#F6F7F9; padding:11px 14px; border-bottom:1px solid #ECECEC; }
   .cap-search { display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #03C75A; border-radius:20px; padding:7px 14px; }
@@ -423,13 +423,20 @@ function capCard(c, planeLabel, bodyHtml) {
     <div class="cap-body">${bodyHtml}</div>
   </div>`;
 }
+// 실제 지면 캡처를 그대로 표시(각 지면 구성요소 보존), 크기만 2열로 축소
+function capShot(c, plane) {
+  return `<div class="cap-card">
+    <div class="cap-head">
+      <div class="cap-meta"><span class="cap-plane-tag">${plane}</span><span class="cap-kw-sm">🔍 ${c.kw}</span><span>· 📸 캡처 ${c.time}</span><span>· ${c.device}</span></div>
+    </div>
+    <img class="cap-shot" src="../_assets/competitors/${c.cap}" alt="${c.kw} ${plane} 지면 캡처" loading="lazy">
+  </div>`;
+}
 function renderGallery() {
   const grid = document.getElementById('cap-grid');
-  if (curPlane === 'powerlink') {
-    grid.innerHTML = POWERLINK.map(c => capCard(c, '파워링크', c.ads.map(plAd).join(''))).join('');
-  } else {
-    grid.innerHTML = SHOPPING.map(c => capCard(c, '쇼핑검색', c.ads.map(shopAd).join(''))).join('');
-  }
+  const list = curPlane === 'powerlink' ? POWERLINK : SHOPPING;
+  const plane = curPlane === 'powerlink' ? '파워링크' : '쇼핑검색';
+  grid.innerHTML = list.filter(c => c.cap).map(c => capShot(c, plane)).join('');
 }
 function setPlane(p, el) {
   curPlane = p;
