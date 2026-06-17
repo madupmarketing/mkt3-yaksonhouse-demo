@@ -146,8 +146,9 @@
 .crv-type { font-size:10px; color:#999; font-weight:600; white-space:nowrap; flex:none; }
 .crv-track { height:11px; background:#EFEFEF; border-radius:6px; overflow:hidden; }
 .crv-fill { height:100%; border-radius:6px; transition:width .3s; }
-.crv-val { font-size:12px; font-weight:800; color:#1A1A1A; flex:none; text-align:right; white-space:nowrap; display:flex; align-items:center; gap:7px; }
-.crv-sev { font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:10px; }
+.crv-val { font-size:12px; font-weight:800; color:#1A1A1A; flex:none; white-space:nowrap; display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.crv-cnt { min-width:32px; text-align:right; flex:none; }
+.crv-sev { font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:10px; width:64px; text-align:center; box-sizing:border-box; flex:none; }
 .crv-sev.high { background:#FEE2E2; color:#DC2626; }
 .crv-sev.mid  { background:#FEF3C7; color:#92400E; }
 .crv-sev.low  { background:#F3F4F6; color:#6B7280; }
@@ -270,7 +271,7 @@ document.getElementById('crv-list').innerHTML = CREATIVE.map(c => {
       <div class="crv-name"><span>${c.name}</span><span class="crv-type">최다 · ${c.type} · 7일 <span class="${tcls}">${c.trend}</span></span></div>
       <div class="crv-track"><div class="crv-fill" style="width:${Math.round(c.n / crvMax * 100)}%;background:${sm.color};"></div></div>
     </div>
-    <span class="crv-val">${c.n}건<span class="crv-sev ${c.sev}">${sm.lab}</span></span>
+    <span class="crv-val"><span class="crv-cnt">${c.n}건</span><span class="crv-sev ${c.sev}">${sm.lab}</span></span>
   </div>`;
 }).join('');
 
