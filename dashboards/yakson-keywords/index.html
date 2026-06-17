@@ -13,8 +13,10 @@
   /* ===== 캡처 갤러리 ===== */
   .cap-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:32px; align-items:stretch; }
   /* 실제 지면 캡처 — 카드 크기 통일(고정 이미지 영역) + contain 가운데 정렬(여백 허용) */
-  .cap-shot-wrap { flex:1; min-height:190px; display:flex; align-items:center; justify-content:center; background:#FAFBFC; border-top:1px solid #F0F0F0; padding:14px; }
-  .cap-shot { max-width:100%; max-height:170px; display:block; object-fit:contain; border-radius:5px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .cap-shot-wrap { background:#FFFFFF; border-top:1px solid #F0F0F0; }
+  /* 모든 캡처 동일 크기·좌표 — 가로 폭 채워 늘림(약간의 왜곡 허용) */
+  .cap-shot { width:100%; height:158px; display:block; object-fit:fill; }
+  .cap-shot-wrap.noimg { min-height:158px; display:flex; align-items:center; justify-content:center; }
   .cap-shot-wrap.noimg::after { content:'캡처 준비중'; color:#B8B8B8; font-size:12px; font-weight:600; }
   .cap-kw-sm { font-size:11px; font-weight:800; color:#1A1A1A; }
   .cap-card { border:1px solid #E6E6E6; border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.05); display:flex; flex-direction:column; }
@@ -101,6 +103,11 @@
 
   /* ===== 경쟁사 소재 소구 트렌드 ===== */
   .soge-bar-row { display:flex; align-items:center; gap:10px; padding:8px 0; }
+  /* 클릭 가능한 분포 막대 (유형 선택 → 요약 매칭) */
+  .soge-bar-row.cbar { cursor:pointer; border-radius:8px; padding:7px 9px; transition:background .15s; }
+  .soge-bar-row.cbar:hover { background:#F6F7F9; }
+  .soge-bar-row.cbar.sel { background:#FFF1F2; box-shadow:inset 3px 0 0 #D8404D; }
+  .soge-bar-row.cbar.total { border-bottom:1px solid #EEE; border-radius:8px 8px 0 0; }
   .soge-name { font-size:12px; font-weight:700; color:#1A1A1A; width:120px; flex:none; }
   .soge-track { flex:1; height:12px; background:#F0F0F0; border-radius:6px; overflow:hidden; }
   .soge-fill { height:100%; border-radius:6px; }
@@ -478,19 +485,37 @@ const SOGE_DIST = [
   { type:'신뢰·리뷰',     pct:6,  n:2,  color:'#7C3AED' },
   { type:'디자인·패키지', pct:3,  n:1,  color:'#9CA3AF' },
 ];
-document.getElementById('soge-dist').innerHTML = SOGE_DIST.map(s => `
-  <div class="soge-bar-row">
-    <span class="soge-name">${s.type}</span>
-    <div class="soge-track"><div class="soge-fill" style="width:${s.pct}%;background:${s.color};"></div></div>
-    <span class="soge-val">${s.pct}% <span>${s.n}건</span></span>
-  </div>`).join('');
-
 const SOGE_INSIGHT = [
-  { ic:'📝', t:"<b>T&D 트렌드</b> — 제목·설명은 '최저가·할인'(38%) 중심, '1+1·증정' 프로모션(17%) 빈번. 가격 소구 과열." },
-  { ic:'🖼️', t:"<b>이미지 트렌드</b> — 제품 단독컷 + 대형 가격 배지 + '특가·한정' 라벨이 주류." },
-  { ic:'🎯', t:"<b>자사 권고</b> — '효과·내구성·리뷰 1만+' 신뢰 소구로 차별화, 가격 경쟁 회피·프리미엄 포지션 유지 (제안)." },
+  ['📝',"<b>T&D 트렌드</b> — 제목·설명은 '최저가·할인'(38%) 중심, '1+1·증정' 프로모션(17%) 빈번. 가격 소구 과열."],
+  ['🖼️',"<b>이미지 트렌드</b> — 제품 단독컷 + 대형 가격 배지 + '특가·한정' 라벨이 주류."],
+  ['🎯',"<b>자사 권고</b> — '효과·내구성·리뷰 1만+' 신뢰 소구로 차별화, 가격 경쟁 회피·프리미엄 포지션 유지 (제안)."],
 ];
-document.getElementById('soge-insight').innerHTML = SOGE_INSIGHT.map(x => `<div class="ins-row"><span>${x.ic}</span><span>${x.t}</span></div>`).join('');
+const SOGE_TYPE_INSIGHT = {
+  '가격·할인':     [['📝',"<b>T&D</b> — '최저가·단독특가' 가격 소구 중심 + 대형 빨강 가격 배지."],['🎯',"<b>자사 권고</b> — 가격 경쟁 회피, 효과·신뢰 프리미엄 포지션 유지 (제안)."]],
+  '효과·성능':     [['📝',"<b>T&D</b> — '7일 변화·탄력' 효과 수치 소구, 비포&애프터 이미지."],['🎯',"<b>자사 권고</b> — 기간·조건 명시한 임상 근거로 신뢰 강화 (제안)."]],
+  '프로모션':       [['📝',"<b>T&D</b> — '1+1·사은품 증정' 번들 소구, 묶음컷·증정 스티커."],['🎯',"<b>자사 권고</b> — 세트 구성·가치 차별화로 단순 1+1 경쟁 탈피 (제안)."]],
+  '성분 강조':     [['📝',"<b>T&D</b> — 'PDRN·콜라겐 고함량' 성분 소구, 성분 클로즈업·함량 그래프."],['🎯',"<b>자사 권고</b> — 함량 수치·성분 신뢰로 차별화 (제안)."]],
+  '신뢰·리뷰':     [['📝',"<b>T&D</b> — '리뷰 1만+·실사용 후기' 신뢰 소구, 별점·리뷰 캡처."],['🎯',"<b>자사 권고</b> — 정품·누적 리뷰 전면 배치로 신뢰 우위 (제안)."]],
+  '디자인·패키지': [['📝',"<b>T&D</b> — '고급 패키지·기프트' 선물 수요 소구, 패키지 컷."],['🎯',"<b>자사 권고</b> — 프리미엄 패키지·기프트 라인으로 선물 시장 공략 (제안)."]],
+};
+const SOGE_N = SOGE_DIST.reduce((a, s) => a + s.n, 0);
+let curSogeType = '전체';
+function renderSogeDist() {
+  const rows = [{ type:'전체', pct:100, n:SOGE_N, color:'#374151' }].concat(SOGE_DIST);
+  document.getElementById('soge-dist').innerHTML = rows.map((r, i) => `
+    <div class="soge-bar-row cbar${i === 0 ? ' total' : ''}${r.type === curSogeType ? ' sel' : ''}" onclick="setSogeType(${i})">
+      <span class="soge-name">${r.type}</span>
+      <div class="soge-track"><div class="soge-fill" style="width:${r.pct}%;background:${r.color};"></div></div>
+      <span class="soge-val">${r.pct}% <span>${r.n}건</span></span>
+    </div>`).join('');
+  const ins = curSogeType === '전체' ? SOGE_INSIGHT : (SOGE_TYPE_INSIGHT[curSogeType] || SOGE_INSIGHT);
+  document.getElementById('soge-insight').innerHTML = ins.map(x => `<div class="ins-row"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('');
+}
+function setSogeType(i) {
+  curSogeType = i === 0 ? '전체' : SOGE_DIST[i - 1].type;
+  renderSogeDist();
+}
+renderSogeDist();
 
 const SOGE_CR = [
   { type:'가격·할인',     color:'#DC2626', td:'"리프팅밴드 최저가 — 오늘 단독특가"', img:'제품 단독컷 + 빨강 가격 배지', comp:'메디뷰티몰' },
@@ -526,17 +551,36 @@ const MGFA_CR = [
   { plat:'GFA',  platColor:'#03C75A', fmt:'슬라이드',   type:'디바이스 시연', tColor:'#F59E0B', copy:'"5분 시연 영상"',          comp:'메디뷰티' },
   { plat:'GFA',  platColor:'#03C75A', fmt:'단일 이미지', type:'비포&애프터',   tColor:'#15803D', copy:'"붓기 전후 비교컷"',        comp:'르마하' },
 ];
-let mgfaShown = [];
-function renderMgfa(f) {
-  const d = MGFA[f];
-  document.getElementById('mgfa-dist-sub').textContent = `메타·GFA 소재 ${d.n}건 분류`;
-  document.getElementById('mgfa-dist').innerHTML = d.dist.map(s => `
-    <div class="soge-bar-row">
-      <span class="soge-name">${s[0]}</span>
-      <div class="soge-track"><div class="soge-fill" style="width:${s[1]}%;background:${s[3]};"></div></div>
-      <span class="soge-val">${s[1]}% <span>${s[2]}건</span></span>
+// 소구 유형별 이미지·문안 활용 요약 (분포 막대 클릭 시 매칭)
+const MGFA_TYPE_INSIGHT = {
+  '후기·UGC':     [['🎬',"<b>소재 특징</b> — 실사용 후기 영상·일상 UGC 중심. '2주 써본 후기' 체험형 문안 + 댓글 유도 CTA."],['🎯',"<b>자사 권고</b> — 진성 리뷰어 협업·임상 근거 영상으로 신뢰 차별화 (제안)."]],
+  '비포&애프터':  [['🎬',"<b>소재 특징</b> — 턱선 전후 분할컷 + '7일 변화' 수치. 짧은 영상·캐러셀로 변화 시각화."],['🎯',"<b>자사 권고</b> — 동일 조건·객관 측정 비포&애프터로 과장 논란 회피 (제안)."]],
+  '할인·프로모션':[['🖼️',"<b>소재 특징</b> — 대형 가격 배지 + '오늘만 N% 할인코드' 즉시 행동 유도."],['🎯',"<b>자사 권고</b> — 가격 경쟁 회피, 가치·효과 소구로 프리미엄 포지션 유지 (제안)."]],
+  '디바이스 시연':[['🖼️',"<b>소재 특징</b> — 5분 시연 슬라이드·사용법 영상. '간편 시연' 카피 중심."],['🎯',"<b>자사 권고</b> — 효과·내구성 시연 콘텐츠로 기능 차별화 (제안)."]],
+  '인플루언서':   [['🎬',"<b>소재 특징</b> — 인플루언서 협찬 콘텐츠·'내돈내산' 솔직 후기 톤."],['🎯',"<b>자사 권고</b> — 브랜드 적합 인플루언서 진성 협업 + 근거 제시 (제안)."]],
+  '성분·효과':    [['🖼️',"<b>소재 특징</b> — 성분 클로즈업·함량 그래프. 'PDRN·콜라겐 고함량' 강조."],['🎯',"<b>자사 권고</b> — 임상·성분 근거 수치로 신뢰 소구 (제안)."]],
+};
+let mgfaShown = [], curMgfaFilter = 'all', curMgfaType = '전체';
+function renderMgfaDist() {
+  const d = MGFA[curMgfaFilter];
+  const rows = [{ name:'전체', pct:100, n:d.n, color:'#374151' }].concat(d.dist.map(s => ({ name:s[0], pct:s[1], n:s[2], color:s[3] })));
+  document.getElementById('mgfa-dist').innerHTML = rows.map((r, i) => `
+    <div class="soge-bar-row cbar${i === 0 ? ' total' : ''}${r.name === curMgfaType ? ' sel' : ''}" onclick="setMgfaType(${i})">
+      <span class="soge-name">${r.name}</span>
+      <div class="soge-track"><div class="soge-fill" style="width:${r.pct}%;background:${r.color};"></div></div>
+      <span class="soge-val">${r.pct}% <span>${r.n}건</span></span>
     </div>`).join('');
-  document.getElementById('mgfa-insight').innerHTML = d.insight.map(x => `<div class="ins-row"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('');
+  const ins = curMgfaType === '전체' ? d.insight : (MGFA_TYPE_INSIGHT[curMgfaType] || d.insight);
+  document.getElementById('mgfa-insight').innerHTML = ins.map(x => `<div class="ins-row"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('');
+}
+function setMgfaType(i) {
+  curMgfaType = i === 0 ? '전체' : MGFA[curMgfaFilter].dist[i - 1][0];
+  renderMgfaDist();
+}
+function renderMgfa(f) {
+  curMgfaFilter = f; curMgfaType = '전체';
+  document.getElementById('mgfa-dist-sub').textContent = `메타·GFA 소재 ${MGFA[f].n}건 분류 · 유형 클릭 시 요약 전환`;
+  renderMgfaDist();
   mgfaShown = f === 'all' ? MGFA_CR : MGFA_CR.filter(c => f === 'meta' ? c.plat === 'Meta' : c.plat === 'GFA');
   document.getElementById('mgfa-cr-grid').innerHTML = mgfaShown.map((c, i) => `
     <div class="soge-cr clickable" onclick="openCrModal(${i})">
