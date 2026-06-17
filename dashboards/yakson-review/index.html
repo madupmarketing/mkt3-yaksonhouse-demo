@@ -167,8 +167,8 @@ const SKU_DATA = [
   { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'gypsum',    sku: '밀크엑소좀 석고 마스크팩', rev: 2150, roas: 270, repur: 3.50, firstPct: 93.1, chMix: { store: 48, coupang: 38, etc: 14 } },
   { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'pdrn',      sku: 'PDRN 콜라겐 석고마스크팩', rev: 1420, roas: 195, repur: 6.20, firstPct: 87.3, chMix: { store: 50, coupang: 35, etc: 15 } },
   { brand: 'yakson', brandLabel: '약손명가', brandColor: '#D8404D', img: 'yeorihan',  sku: '여리한 패치', rev: 1680, roas: 220, repur: 5.80, firstPct: 89.7, chMix: { store: 45, coupang: 42, etc: 13 } },
-  // 올리리라 — 올리리라밴드
-  { brand: 'ollira', brandLabel: '올리리라', brandColor: '#4A90D9', img: 'olli',      sku: '올리리라밴드', rev: 4950, roas: 390, repur: 2.31, firstPct: 95.8, chMix: { store: 65, coupang: 22, etc: 13 } },
+  // 올리리라 — 올리밴드
+  { brand: 'ollira', brandLabel: '올리리라', brandColor: '#4A90D9', img: 'olli',      sku: '올리밴드', rev: 4950, roas: 390, repur: 2.31, firstPct: 95.8, chMix: { store: 65, coupang: 22, etc: 13 } },
   // 골기 — 페이스 스톤·바디 스톤
   { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'facestone', sku: '골기 페이스 스톤', rev: 1830, roas: 240, repur: 3.90, firstPct: 92.5, chMix: { store: 50, coupang: 24, etc: 26 } },
   { brand: 'golgi', brandLabel: '골기', brandColor: '#C9A227', img: 'bodystone', sku: '골기 바디 스톤', rev: 980, roas: 175, repur: 4.60, firstPct: 90.2, chMix: { store: 47, coupang: 28, etc: 25 } },
@@ -209,7 +209,7 @@ const BRAND_VIEW = {
     label: '올리리라',
     kpi: [
       { label: '등록 SKU', value: '1', unit: '종', delta: '전월 대비 +1종', up: true },
-      { label: '올리리라밴드 누적 판매', value: '12', unit: '만개', featured: true, delta: '전월 대비 +5.5%', up: true },
+      { label: '올리밴드 누적 판매', value: '12', unit: '만개', featured: true, delta: '전월 대비 +5.5%', up: true },
       { label: '매출', value: '0.50', unit: '억원', featured: true, delta: '전월 대비 +9.4%', up: true },
       { label: '재구매율 (베이스라인)', value: '2.31', unit: '%', delta: '전월 대비 +0.4%', up: true },
     ],
@@ -327,7 +327,7 @@ const XSKU = [
   { name:'밀크엑소좀 석고 마스크팩',    img:'gypsum',    brand:'yakson', color:'#D8404D', type:'consumable', concerns:['붓기','진정'],        routine:'night', repur:3.50, orders:1150 },
   { name:'여리한 패치',                img:'yeorihan',  brand:'yakson', color:'#D8404D', type:'consumable', concerns:['복부','탄력'],        routine:'body',  repur:5.80, orders:980 },
   { name:'PDRN 콜라겐 석고마스크팩',    img:'pdrn',      brand:'yakson', color:'#D8404D', type:'consumable', concerns:['탄력','PDRN'],        routine:'face',  repur:6.20, orders:760 },
-  { name:'올리리라밴드',               img:'olli',      brand:'ollira', color:'#4A90D9', type:'device',     concerns:['탄력','윤곽'],        routine:'face',  repur:2.31, orders:2600 },
+  { name:'올리밴드',               img:'olli',      brand:'ollira', color:'#4A90D9', type:'device',     concerns:['탄력','윤곽'],        routine:'face',  repur:2.31, orders:2600 },
   { name:'골기 페이스 스톤',            img:'facestone', brand:'golgi',  color:'#C9A227', type:'device',     concerns:['붓기','림프'],        routine:'face',  repur:3.90, orders:1080 },
   { name:'골기 바디 스톤',             img:'bodystone', brand:'golgi',  color:'#C9A227', type:'device',     concerns:['바디','순환'],        routine:'body',  repur:4.60, orders:540 },
 ];
@@ -366,7 +366,7 @@ function renderCross() {
     // 디바이스(앵커 제품)를 앞에 배치
     const first = p.a.type === 'device' ? p.a : (p.b.type === 'device' ? p.b : p.a);
     const second = first === p.a ? p.b : p.a;
-    // 올리리라밴드(olli) × 패치(patch) 조합은 동일 브랜드 세트 — 올리리라 웨이브 하이드로 패치로 노출 (전 채널 공통)
+    // 올리밴드(olli) × 패치(patch) 조합은 동일 브랜드 세트 — 올리리라 웨이브 하이드로 패치로 노출 (전 채널 공통)
     let fName = first.name, fImg = first.img, sName = second.name, sImg = second.img;
     if ((first.img === 'olli' && second.img === 'patch') || (first.img === 'patch' && second.img === 'olli')) {
       if (first.img === 'patch') { fName = '올리리라 웨이브 하이드로 패치'; fImg = 'ollira_wave'; }
