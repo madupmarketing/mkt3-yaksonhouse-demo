@@ -17,7 +17,8 @@
   /* 쇼핑검색: 가로 폭 채움(현행 유지) / 파워링크: 왜곡 없이 동일 영역에 축소(가운데 정렬, 좌우 여백 허용) */
   .cap-shot { width:100%; height:158px; display:block; object-fit:fill; }
   .cap-card.cap-pl .cap-shot-wrap { padding:6px 0; }
-  .cap-card.cap-pl .cap-shot { height:146px; object-fit:contain; }
+  /* 가로가 넓은 캡처(셀비전 등)가 카드 폭까지 꽉 차지 않도록 리프팅밴드 캡처와 동일한 가로폭(426px)으로 캡·가운데 정렬 */
+  .cap-card.cap-pl .cap-shot { height:146px; object-fit:contain; max-width:426px; margin:0 auto; }
   .cap-shot-wrap.noimg { min-height:158px; display:flex; align-items:center; justify-content:center; }
   .cap-shot-wrap.noimg::after { content:'캡처 준비중'; color:#B8B8B8; font-size:12px; font-weight:600; }
   .cap-kw-sm { font-size:11px; font-weight:800; color:#1A1A1A; }
