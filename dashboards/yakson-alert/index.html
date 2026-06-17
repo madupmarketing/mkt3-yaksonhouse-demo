@@ -188,7 +188,7 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-label">최다 불만 유형</div>
-        <div class="kpi-value" style="font-size:22px;">효과 불만</div>
+        <div class="kpi-value" style="font-size:22px;">가격</div>
       </div>
     </div>
 
@@ -297,12 +297,12 @@ document.getElementById('crv-list').innerHTML = CREATIVE.map(c => {
 
 // ===== 매체별 부정 코멘트 — 유형별 분포 =====
 const CMT_CAT = [
-  { cat: '효과 불만',  n: 34, color: '#DC2626' },
-  { cat: '허위·과장',  n: 21, color: '#F59E0B' },
-  { cat: 'CS·배송',   n: 18, color: '#1D4ED8' },
-  { cat: '가격',      n: 12, color: '#7C3AED' },
-  { cat: '부적절 표현', n: 9,  color: '#6B7280' },
-  { cat: '디자인',    n: 4,  color: '#9CA3AF' },
+  { cat: '가격',       n: 35, color: '#DC2626' },
+  { cat: 'CS·배송',    n: 27, color: '#F59E0B' },
+  { cat: '디자인',     n: 11, color: '#1D4ED8' },
+  { cat: '효과 불만',  n: 9,  color: '#7C3AED' },
+  { cat: '허위·과장',  n: 9,  color: '#6B7280' },
+  { cat: '부적절 표현', n: 7,  color: '#9CA3AF' },
 ];
 const cmtTotal = CMT_CAT.reduce((a, c) => a + c.n, 0);
 const cmtMax = Math.max.apply(null, CMT_CAT.map(c => c.n));

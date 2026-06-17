@@ -161,6 +161,14 @@
       </div>
     </div>
 
+    <!-- 브랜드 필터 -->
+    <div class="filter-bar" style="margin-bottom:20px;">
+      <div class="filter-chip brand active" onclick="setCompBrand('all',this)">전체 브랜드</div>
+      <div class="filter-chip brand" onclick="setCompBrand('yakson',this)">약손명가</div>
+      <div class="filter-chip brand" onclick="setCompBrand('ollira',this)">올리리라</div>
+      <div class="filter-chip brand" onclick="setCompBrand('golgi',this)">골기</div>
+    </div>
+
     <!-- 핵심 인사이트 (전역 CSS로 숨김) -->
     <div class="section-title" style="margin-top:2px;">
       핵심 인사이트 · 마케팅 시사점
@@ -177,19 +185,19 @@
     <div class="kpi-grid cols-4">
       <div class="kpi-card">
         <div class="kpi-label">모니터링 키워드</div>
-        <div class="kpi-value">18<span class="kpi-unit">종</span></div>
+        <div class="kpi-value"><span id="kpi-kw">18</span><span class="kpi-unit">종</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">금일 지면 캡처</div>
-        <div class="kpi-value">24<span class="kpi-unit">건</span></div>
+        <div class="kpi-value"><span id="kpi-cap">24</span><span class="kpi-unit">건</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">경쟁사 노출</div>
-        <div class="kpi-value">36<span class="kpi-unit">건</span></div>
+        <div class="kpi-value"><span id="kpi-comp">36</span><span class="kpi-unit">건</span></div>
       </div>
       <div class="kpi-card featured">
         <div class="kpi-label">🚨 스크럽 후보</div>
-        <div class="kpi-value" style="color:#DC2626;">5<span class="kpi-unit">건</span></div>
+        <div class="kpi-value" style="color:#DC2626;"><span id="kpi-scrub">5</span><span class="kpi-unit">건</span></div>
       </div>
     </div>
 
@@ -273,6 +281,18 @@
 
 <script src="../_assets/sidebar.js"></script>
 <script>
+// ============================================================
+// 브랜드 필터 (전체/약손명가/올리리라/골기) — 하단 전 섹션 데이터 전환
+// ============================================================
+let curCompBrand = 'all';
+const KW_BRAND = { '리프팅밴드':'yakson', '리프팅패치':'yakson', '브이라인 마사지기':'ollira', '경락 디바이스':'ollira', '광대 마사지':'golgi' };
+const brandOfText = t => (/약손|리프팅(밴드|패치)/.test(t) ? 'yakson' : /올리리라|브이라인|경락/.test(t) ? 'ollira' : /골기|괄사|광대/.test(t) ? 'golgi' : 'all');
+const CB_KPI = { all:[18,24,36,5], yakson:[8,11,17,3], ollira:[6,9,13,1], golgi:[4,6,6,1] };
+function renderCompKpi() {
+  const v = CB_KPI[curCompBrand];
+  ['kpi-kw','kpi-cap','kpi-comp','kpi-scrub'].forEach((id, i) => { document.getElementById(id).textContent = v[i]; });
+}
+
 // ============================================================
 // 네이버 검색광고 지면 캡처 (재현 목업) — 파워링크 / 쇼핑검색
 // flag:true = 자사 상표/브랜드 키워드를 도용한 경쟁사 광고
@@ -443,9 +463,12 @@ function capShot(c, plane) {
 }
 function renderGallery() {
   const grid = document.getElementById('cap-grid');
-  const list = curPlane === 'powerlink' ? POWERLINK : SHOPPING;
   const plane = curPlane === 'powerlink' ? '파워링크' : '쇼핑검색';
-  grid.innerHTML = list.filter(c => c.cap).map(c => capShot(c, plane)).join('');
+  const list = (curPlane === 'powerlink' ? POWERLINK : SHOPPING)
+    .filter(c => c.cap && (curCompBrand === 'all' || KW_BRAND[c.kw] === curCompBrand));
+  grid.innerHTML = list.length
+    ? list.map(c => capShot(c, plane)).join('')
+    : `<div style="grid-column:1/-1;padding:40px;text-align:center;color:#AAA;font-size:13px;font-weight:600;">해당 브랜드의 ${plane} 지면 캡처가 없습니다</div>`;
 }
 function setPlane(p, el) {
   curPlane = p;
@@ -455,7 +478,9 @@ function setPlane(p, el) {
 }
 
 function renderScrub() {
-  document.getElementById('scrub-list').innerHTML = SCRUB.map(s => {
+  const list = SCRUB.filter(s => curCompBrand === 'all' || brandOfText(s.kw) === curCompBrand);
+  if (!list.length) { document.getElementById('scrub-list').innerHTML = `<div style="padding:30px;text-align:center;color:#AAA;font-size:13px;font-weight:600;">해당 브랜드의 스크럽 후보가 없습니다</div>`; return; }
+  document.getElementById('scrub-list').innerHTML = list.map(s => {
     const sevLabel = s.sev === 'high' ? '높음' : '중간';
     const alertTxt = s.sev === 'high' ? '🚨 스크럽 신청 필요' : '⚠ 스크럽 검토';
     return `<div class="scrub-item">
@@ -498,21 +523,37 @@ const SOGE_TYPE_INSIGHT = {
   '신뢰·리뷰':     [['📝',"<b>T&D</b> — '리뷰 1만+·실사용 후기' 신뢰 소구, 별점·리뷰 캡처."],['🎯',"<b>자사 권고</b> — 정품·누적 리뷰 전면 배치로 신뢰 우위 (제안)."]],
   '디자인·패키지': [['📝',"<b>T&D</b> — '고급 패키지·기프트' 선물 수요 소구, 패키지 컷."],['🎯',"<b>자사 권고</b> — 프리미엄 패키지·기프트 라인으로 선물 시장 공략 (제안)."]],
 };
-const SOGE_N = SOGE_DIST.reduce((a, s) => a + s.n, 0);
+// 브랜드별 검색광고 소구 분포·요약
+const BRAND_SOGE_OVERRIDE = {
+  yakson: { dist:[
+      { type:'가격·할인', pct:41, n:7, color:'#DC2626' }, { type:'효과·성능', pct:29, n:5, color:'#15803D' },
+      { type:'성분 강조', pct:18, n:3, color:'#1D4ED8' }, { type:'프로모션', pct:12, n:2, color:'#F59E0B' } ],
+    insight:[['📝',"<b>T&D</b> — 리프팅밴드·패치 경쟁사가 '최저가·PDRN 성분' 가격·성분 소구 집중."],['🖼️',"<b>이미지</b> — 제품 단독컷 + 가격 배지 + 성분 함량 표기 주류."],['🎯',"<b>자사 권고</b> — 임상·내구성·리뷰 1만+ 신뢰로 가격 경쟁 회피 (제안)."]] },
+  ollira: { dist:[
+      { type:'효과·성능', pct:38, n:5, color:'#15803D' }, { type:'프로모션', pct:23, n:3, color:'#F59E0B' },
+      { type:'가격·할인', pct:23, n:3, color:'#DC2626' }, { type:'신뢰·리뷰', pct:16, n:2, color:'#7C3AED' } ],
+    insight:[['📝',"<b>T&D</b> — 브이라인·경락 디바이스 경쟁사가 'EMS 효과·N분 케어' 기능 소구 + 할인."],['🖼️',"<b>이미지</b> — 디바이스 시연·전후 비교컷, '누적 판매량' 강조."],['🎯',"<b>자사 권고</b> — 임상 효과·안전성·정품 보증으로 차별화 (제안)."]] },
+  golgi: { dist:[
+      { type:'가격·할인', pct:33, n:2, color:'#DC2626' }, { type:'디자인·패키지', pct:33, n:2, color:'#9CA3AF' },
+      { type:'효과·성능', pct:17, n:1, color:'#15803D' }, { type:'프로모션', pct:17, n:1, color:'#F59E0B' } ],
+    insight:[['📝',"<b>T&D</b> — 광대 마사지·괄사 경쟁사가 '가격·선물 패키지' 가성비·기프트 소구."],['🖼️',"<b>이미지</b> — 패키지컷·괄사 시연, 사은품 강조."],['🎯',"<b>자사 권고</b> — 프리미엄 패키지·선물 포지션으로 가성비 경쟁 탈피 (제안)."]] },
+};
+const sogeData = () => curCompBrand === 'all' ? { dist:SOGE_DIST, insight:SOGE_INSIGHT } : BRAND_SOGE_OVERRIDE[curCompBrand];
 let curSogeType = '전체';
 function renderSogeDist() {
-  const rows = [{ type:'전체', pct:100, n:SOGE_N, color:'#374151' }].concat(SOGE_DIST);
+  const sd = sogeData(), N = sd.dist.reduce((a, s) => a + s.n, 0);
+  const rows = [{ type:'전체', pct:100, n:N, color:'#374151' }].concat(sd.dist);
   document.getElementById('soge-dist').innerHTML = rows.map((r, i) => `
     <div class="soge-bar-row cbar${i === 0 ? ' total' : ''}${r.type === curSogeType ? ' sel' : ''}" onclick="setSogeType(${i})">
       <span class="soge-name">${r.type}</span>
       <div class="soge-track"><div class="soge-fill" style="width:${r.pct}%;background:${r.color};"></div></div>
       <span class="soge-val">${r.pct}% <span>${r.n}건</span></span>
     </div>`).join('');
-  const ins = curSogeType === '전체' ? SOGE_INSIGHT : (SOGE_TYPE_INSIGHT[curSogeType] || SOGE_INSIGHT);
+  const ins = curSogeType === '전체' ? sd.insight : (SOGE_TYPE_INSIGHT[curSogeType] || sd.insight);
   document.getElementById('soge-insight').innerHTML = ins.map(x => `<div class="ins-row"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('');
 }
 function setSogeType(i) {
-  curSogeType = i === 0 ? '전체' : SOGE_DIST[i - 1].type;
+  curSogeType = i === 0 ? '전체' : sogeData().dist[i - 1].type;
   renderSogeDist();
 }
 renderSogeDist();
@@ -560,9 +601,37 @@ const MGFA_TYPE_INSIGHT = {
   '인플루언서':   [['🎬',"<b>소재 특징</b> — 인플루언서 협찬 콘텐츠·'내돈내산' 솔직 후기 톤."],['🎯',"<b>자사 권고</b> — 브랜드 적합 인플루언서 진성 협업 + 근거 제시 (제안)."]],
   '성분·효과':    [['🖼️',"<b>소재 특징</b> — 성분 클로즈업·함량 그래프. 'PDRN·콜라겐 고함량' 강조."],['🎯',"<b>자사 권고</b> — 임상·성분 근거 수치로 신뢰 소구 (제안)."]],
 };
+// 브랜드별 META·GFA 소구 분포·요약
+const BRAND_MGFA_OVERRIDE = {
+  yakson: {
+    all:  { n:18, dist:[['후기·UGC',34,6,'#1877F2'],['비포&애프터',28,5,'#15803D'],['성분·효과',20,4,'#9CA3AF'],['할인·프로모션',18,3,'#DC2626']],
+      insight:[['🎬',"<b>이미지·영상</b> — 리프팅밴드·패치 실사용 후기 영상 + 7일 비포&애프터 다수."],['🎯',"<b>자사 권고</b> — PDRN 성분·임상 근거 콘텐츠로 신뢰 차별화 (제안)."]] },
+    meta: { n:11, dist:[['후기·UGC',45,5,'#1877F2'],['비포&애프터',27,3,'#15803D'],['인플루언서',18,2,'#7C3AED'],['성분·효과',10,1,'#9CA3AF']],
+      insight:[['🎬',"<b>이미지·영상</b> — 릴스 후기·인플루언서 협찬 중심."],['🎯',"<b>자사 권고</b> — 진성 리뷰어 + 성분 근거로 신뢰 강화 (제안)."]] },
+    gfa:  { n:7,  dist:[['할인·프로모션',43,3,'#DC2626'],['비포&애프터',29,2,'#15803D'],['성분·효과',28,2,'#9CA3AF']],
+      insight:[['🖼️',"<b>이미지</b> — 가격 배지 + 성분 함량 단독컷."],['🎯',"<b>자사 권고</b> — 효과·성분 강조로 가격 경쟁 탈피 (제안)."]] },
+  },
+  ollira: {
+    all:  { n:14, dist:[['디바이스 시연',36,5,'#F59E0B'],['후기·UGC',28,4,'#1877F2'],['할인·프로모션',22,3,'#DC2626'],['비포&애프터',14,2,'#15803D']],
+      insight:[['🎬',"<b>이미지·영상</b> — EMS 디바이스 시연·사용법 영상 최다, 전후 윤곽 비교."],['🎯',"<b>자사 권고</b> — 임상 효과·안전성 시연으로 기능 차별화 (제안)."]] },
+    meta: { n:8,  dist:[['후기·UGC',50,4,'#1877F2'],['인플루언서',25,2,'#7C3AED'],['디바이스 시연',25,2,'#F59E0B']],
+      insight:[['🎬',"<b>이미지·영상</b> — 디바이스 실사용 후기·인플루언서 콘텐츠."],['🎯',"<b>자사 권고</b> — 진성 후기 + 효과 근거 강조 (제안)."]] },
+    gfa:  { n:6,  dist:[['디바이스 시연',50,3,'#F59E0B'],['할인·프로모션',33,2,'#DC2626'],['비포&애프터',17,1,'#15803D']],
+      insight:[['🖼️',"<b>이미지</b> — 5분 시연 슬라이드 + 할인 배지."],['🎯',"<b>자사 권고</b> — 내구성·효과 시연으로 차별화 (제안)."]] },
+  },
+  golgi: {
+    all:  { n:6,  dist:[['할인·프로모션',33,2,'#DC2626'],['디바이스 시연',33,2,'#F59E0B'],['후기·UGC',17,1,'#1877F2'],['비포&애프터',17,1,'#15803D']],
+      insight:[['🖼️',"<b>이미지·영상</b> — 괄사·광대 마사지 시연 + 가격/선물 소구 혼재."],['🎯',"<b>자사 권고</b> — 프리미엄 패키지·전문 케어 포지션으로 차별화 (제안)."]] },
+    meta: { n:3,  dist:[['후기·UGC',67,2,'#1877F2'],['인플루언서',33,1,'#7C3AED']],
+      insight:[['🎬',"<b>이미지·영상</b> — 마사지 루틴 후기·인플루언서 콘텐츠."],['🎯',"<b>자사 권고</b> — 전문성·진성 후기로 신뢰 강조 (제안)."]] },
+    gfa:  { n:3,  dist:[['할인·프로모션',67,2,'#DC2626'],['디바이스 시연',33,1,'#F59E0B']],
+      insight:[['🖼️',"<b>이미지</b> — 가격·선물 패키지 단독컷."],['🎯',"<b>자사 권고</b> — 기프트·프리미엄 포지션으로 가성비 경쟁 탈피 (제안)."]] },
+  },
+};
+const mgfaData = f => (curCompBrand === 'all' ? MGFA : BRAND_MGFA_OVERRIDE[curCompBrand])[f];
 let mgfaShown = [], curMgfaFilter = 'all', curMgfaType = '전체';
 function renderMgfaDist() {
-  const d = MGFA[curMgfaFilter];
+  const d = mgfaData(curMgfaFilter);
   const rows = [{ name:'전체', pct:100, n:d.n, color:'#374151' }].concat(d.dist.map(s => ({ name:s[0], pct:s[1], n:s[2], color:s[3] })));
   document.getElementById('mgfa-dist').innerHTML = rows.map((r, i) => `
     <div class="soge-bar-row cbar${i === 0 ? ' total' : ''}${r.name === curMgfaType ? ' sel' : ''}" onclick="setMgfaType(${i})">
@@ -574,12 +643,12 @@ function renderMgfaDist() {
   document.getElementById('mgfa-insight').innerHTML = ins.map(x => `<div class="ins-row"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('');
 }
 function setMgfaType(i) {
-  curMgfaType = i === 0 ? '전체' : MGFA[curMgfaFilter].dist[i - 1][0];
+  curMgfaType = i === 0 ? '전체' : mgfaData(curMgfaFilter).dist[i - 1][0];
   renderMgfaDist();
 }
 function renderMgfa(f) {
   curMgfaFilter = f; curMgfaType = '전체';
-  document.getElementById('mgfa-dist-sub').textContent = `메타·GFA 소재 ${MGFA[f].n}건 분류 · 유형 클릭 시 요약 전환`;
+  document.getElementById('mgfa-dist-sub').textContent = `메타·GFA 소재 ${mgfaData(f).n}건 분류 · 유형 클릭 시 요약 전환`;
   renderMgfaDist();
   mgfaShown = f === 'all' ? MGFA_CR : MGFA_CR.filter(c => f === 'meta' ? c.plat === 'Meta' : c.plat === 'GFA');
   document.getElementById('mgfa-cr-grid').innerHTML = mgfaShown.map((c, i) => `
@@ -599,6 +668,20 @@ function setMgfa(f, el) {
   renderMgfa(f);
 }
 renderMgfa('all');
+
+// ===== 브랜드 필터 — 하단 전 섹션 갱신 =====
+function setCompBrand(b, el) {
+  curCompBrand = b;
+  document.querySelectorAll('.filter-chip.brand').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  curSogeType = '전체';
+  renderCompKpi();
+  renderGallery();
+  renderSogeDist();
+  renderMgfa(curMgfaFilter);
+  renderScrub();
+}
+renderCompKpi();
 
 // ===== 소재 미리보기 모달 (예시 — 업데이트 예정) =====
 function openCrModal(i) {
