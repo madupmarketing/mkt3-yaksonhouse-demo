@@ -32,7 +32,7 @@
   .xcard:first-child .xrank-evi { left:0; margin-left:0; }
   .xcard:last-child .xrank-evi { left:auto; right:0; margin-left:0; }
   .xcard:hover .xrank-evi { opacity:1; transform:translateY(0); }
-  .evi-row { font-size:11.5px; font-weight:600; line-height:1.5; margin-bottom:10px; }
+  .evi-row { font-size:11.5px; font-weight:600; line-height:1.5; margin-bottom:10px; text-align:center; }
   .evi-row b { color:#FFD93D; font-weight:800; }
   .evi-row .sep { color:#5A5A5A; margin:0 8px; }
   .evi-trend-top { display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:6px; }
@@ -402,7 +402,7 @@ function renderCross() {
         <div class="xcard-idx">${idx}</div>
       </div>
       <div class="xrank-evi">
-        <div class="evi-row">🛒 90일 동시구매 <b>${coBuy.toLocaleString()}건</b><span class="sep">·</span>👀 함께 조회 <b>${coView}%</b></div>
+        <div class="evi-row">🛒 90일 동시구매 <b>${coBuy.toLocaleString()}건</b></div>
         <div class="evi-trend-top"><span class="evi-trend-lab">📈 최근 8주 동시구매 추이</span><span class="evi-up">▲ +${delta}%</span></div>
         ${sSvg}
       </div>
