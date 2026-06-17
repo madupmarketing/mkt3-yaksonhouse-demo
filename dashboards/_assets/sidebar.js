@@ -41,7 +41,7 @@
 
   html += ''
     + '<div class="sidebar-footer">'
-    + '  <div class="footer-logo"><img src="../_assets/logo-symbol.png" alt="Yakson"></div>'
+    + '  <div class="footer-logo"><img src="../_assets/logo-madup.png" alt="MADUP"></div>'
     + '  <div class="footer-text">Powered by <strong>MADUP</strong></div>'
     + '  <div class="footer-logout">↪ 로그아웃</div>'
     + '</div>';
