@@ -150,8 +150,8 @@
       <span class="filter-chip prod active" onclick="setProduct('all',this)">전체</span>
       <span class="filter-chip prod" onclick="setProduct('band',this)">골기 프로그램 리프팅 밴드</span>
       <span class="filter-chip prod" onclick="setProduct('patch',this)">브이한 리프팅 패치</span>
-      <span class="filter-chip prod" onclick="setProduct('gypsum',this)">석고 마스크팩</span>
-      <span class="filter-chip prod" onclick="setProduct('mask',this)">PDRN 마스크팩</span>
+      <span class="filter-chip prod" onclick="setProduct('gypsum',this)">밀크엑소좀 석고 마스크팩</span>
+      <span class="filter-chip prod" onclick="setProduct('mask',this)">PDRN 콜라겐 석고마스크팩</span>
       <span class="filter-chip prod" onclick="setProduct('olli',this)">올리밴드</span>
       <span class="filter-chip prod" onclick="setProduct('stone',this)">골기 페이스 스톤</span>
       <span class="filter-chip prod" onclick="setProduct('ball',this)">골기 바디 스톤</span>
@@ -281,9 +281,9 @@ const PROD = {
             kw: [['고정이 잘 돼요',2180],['접착력이 좋아요',1840],['내구성 강함',1290],['턱선 변화 체감',760],['밀착',540]] },
   patch:  { label: '브이한 리프팅 패치',  reviews: 1500, star: 4.6, repur: 4.12, pos: 89, dist: [74,18,5,2,1], dur: [58,38,4],
             kw: [['접착력이 좋아요',1180],['자국 안 남음',940],['PDRN 탄력',760],['소모성 재구매',620],['휴대 편함',410]] },
-  gypsum: { label: '석고 마스크팩', reviews: 1050, star: 4.5, repur: 3.50, pos: 86, dist: [70,20,6,3,1], dur: [52,43,5],
+  gypsum: { label: '밀크엑소좀 석고 마스크팩', reviews: 1050, star: 4.5, repur: 3.50, pos: 86, dist: [70,20,6,3,1], dur: [52,43,5],
             kw: [['붓기 진정',880],['쿨링감',720],['마무리 깔끔',560],['향 호불호',430],['가성비',360]] },
-  mask:   { label: 'PDRN 마스크팩', reviews: 1300, star: 4.6, repur: 6.00, pos: 90, dist: [76,16,5,2,1], dur: [55,40,5],
+  mask:   { label: 'PDRN 콜라겐 석고마스크팩', reviews: 1300, star: 4.6, repur: 6.00, pos: 90, dist: [76,16,5,2,1], dur: [55,40,5],
             kw: [['수분 차오름',980],['진정 효과',860],['탄력 체감',690],['흡수 빠름',520],['순함',410]] },
   olli:   { label: '올리밴드', reviews: 1900, star: 4.6, repur: 1.32, pos: 85, dist: [73,18,5,2,2], dur: [54,42,4],
             kw: [['5분 사용 간편',980],['온열 만족',840],['붓기 감소',690],['윤곽 선명',520],['충전 오래감',410]] },
@@ -301,10 +301,10 @@ const REVIEWS = [
   { p:'band', ch:'coupang', star:2, date:'2025-08-03', product:'골기 프로그램 리프팅 밴드', snippet:'사이즈가 작아 얼굴에 안 맞았어요. 교환 진행.', kw:['사이즈'], re:false },
   { p:'patch', ch:'store',  star:5, date:'2025-11-05', product:'브이한 리프팅 패치', snippet:'PDRN 패치 자국 안 남고 탄력 체감. 재구매 의사 있음.', kw:['PDRN','탄력'], re:true },
   { p:'patch', ch:'etc',    star:4, date:'2025-09-12', product:'브이한 리프팅 패치', snippet:'올리브영에서 구매. 접착력 좋고 휴대 편함.', kw:['접착력','휴대'], re:false },
-  { p:'gypsum', ch:'store', star:3, date:'2025-08-20', product:'석고 마스크팩', snippet:'효과는 괜찮은데 향이 강한 편. 민감성은 주의.', kw:['향'], re:false },
-  { p:'gypsum', ch:'coupang', star:4, date:'2025-10-02', product:'석고 마스크팩', snippet:'쿨링감 좋고 붓기 진정. 마무리 깔끔.', kw:['붓기','진정'], re:false },
-  { p:'mask', ch:'store',   star:5, date:'2025-11-09', product:'마스크팩', snippet:'수분 차오르고 진정 효과. 자기 전 루틴으로 자리잡음.', kw:['수분','진정'], re:true },
-  { p:'mask', ch:'etc',     star:5, date:'2025-10-25', product:'마스크팩', snippet:'올리브영 재구매. 흡수 빠르고 순해요.', kw:['흡수','순함','재구매'], re:true },
+  { p:'gypsum', ch:'store', star:3, date:'2025-08-20', product:'밀크엑소좀 석고 마스크팩', snippet:'효과는 괜찮은데 향이 강한 편. 민감성은 주의.', kw:['향'], re:false },
+  { p:'gypsum', ch:'coupang', star:4, date:'2025-10-02', product:'밀크엑소좀 석고 마스크팩', snippet:'쿨링감 좋고 붓기 진정. 마무리 깔끔.', kw:['붓기','진정'], re:false },
+  { p:'mask', ch:'store',   star:5, date:'2025-11-09', product:'PDRN 콜라겐 석고마스크팩', snippet:'수분 차오르고 진정 효과. 자기 전 루틴으로 자리잡음.', kw:['수분','진정'], re:true },
+  { p:'mask', ch:'etc',     star:5, date:'2025-10-25', product:'PDRN 콜라겐 석고마스크팩', snippet:'올리브영 재구매. 흡수 빠르고 순해요.', kw:['흡수','순함','재구매'], re:true },
   { p:'olli', ch:'store',   star:5, date:'2025-10-22', product:'올리밴드', snippet:'아침 5분 사용 후 붓기 감소 체감. 얼굴 윤곽 선명해짐.', kw:['붓기빠짐','윤곽'], re:true },
   { p:'olli', ch:'coupang', star:3, date:'2025-08-15', product:'올리밴드', snippet:'EMS 자극이 생각보다 약했어요. 단계 조절 원함.', kw:['자극'], re:false },
   { p:'olli', ch:'etc',     star:4, date:'2025-09-08', product:'올리밴드', snippet:'충전 오래가고 온열 만족. 케이블이 짧아 아쉬움.', kw:['온열','충전'], re:false },
@@ -561,7 +561,7 @@ const YT = {
     { title:'석고팩 vs 모델링팩 솔직 비교', ch:'코덕TV', views:18, date:'2026-05-01', dur:'08:33', emoji:'⚖️', color:'#FFF7E6' },
   ],
   '마스크팩': [
-    { title:'PDRN 마스크팩 일주일 챌린지', ch:'피부일기', views:63, date:'2026-04-05', dur:'11:48', emoji:'✨', color:'#FCEDF2' },
+    { title:'PDRN 콜라겐 석고마스크팩 일주일 챌린지', ch:'피부일기', views:63, date:'2026-04-05', dur:'11:48', emoji:'✨', color:'#FCEDF2' },
     { title:'수분 폭탄 마스크팩 추천 TOP5', ch:'뷰티위클리', views:41, date:'2026-03-25', dur:'13:20', emoji:'💧', color:'#EAF1FB' },
     { title:'마스크팩 매일 하면 생기는 일', ch:'닥터스킨', views:27, date:'2026-05-12', dur:'09:55', emoji:'🧴', color:'#F0FDF4' },
   ],
